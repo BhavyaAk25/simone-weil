@@ -1,5 +1,7 @@
 # The Life of Simone Weil
 
+[Open the published book](https://bhavyaak25.github.io/simone-weil/) · [Source repository](https://github.com/BhavyaAk25/simone-weil)
+
 A twelve-chapter interactive biography built as a real 3D pop-up book. Blender authors the leather book, paper scenes and baked hinges; Three.js renders them in a Vite, React and TypeScript website. Each spread pairs original English prose with a short attributed project translation of Simone Weil.
 
 ## Run locally
@@ -55,6 +57,6 @@ The shared rules and ownership are in [AGENTS.md](AGENTS.md). The rejected initi
 
 ## Publication
 
-The authorized destination is the public repository `BhavyaAk25/simone-weil`, deployed through GitHub Actions to GitHub Pages. Publication must follow the complete verification gate; repository creation and deployment status are recorded in [PLAN](docs/PLAN.md). Configure Pages to use GitHub Actions and upload only `dist/client`.
+Published to the public repository `BhavyaAk25/simone-weil` and GitHub Pages. Every push to `main` runs type checking, tests, all thirteen asset validations, a production build and packaging checks before deploying `dist/client`. The first successful deployment and live-browser checks are recorded in [QA](docs/QA.md).
 
 No account, backend, visitor API, paid service or custom domain is required. See [CREDITS](CREDITS.md) and the [source register](docs/SOURCES.md) for assets and quotations. Physical-phone performance must be measured on a real device; mobile browser dimensions on a desktop are not a phone benchmark.

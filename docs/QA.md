@@ -2,7 +2,7 @@
 
 ## Release status
 
-**Local release gate passed, 11 September 2026.** All twelve revised scenes and both navigation directions were checked in the browser. Public deployment verification follows below. Earlier failures are retained as history; they do not describe the final exports.
+**Local release gate passed, 11 September 2026.** All twelve revised scenes and both navigation directions were checked in the browser. Public deployment verification passed and is recorded below. Earlier failures are retained as history; they do not describe the final exports.
 
 The selected appearance reference is `docs/references/dark-walnut.png`. The required correction is recorded in `AGENTS.md` and `docs/REVISION.md`.
 
@@ -53,7 +53,7 @@ Folded scenery fits X ±2.50 and Z ±1.64, with nominal Y `[0.213, 0.320]`; the 
 - [x] Desktop writing stays on the paper without scene overlap; phone portrait and landscape show the same text below the canvas.
 - [x] Walnut, leather, paper edges, scene detail, lighting and composition pass direct screenshot comparison with the reference. Record intentional differences separately.
 - [x] Type check, production build, focused tests, Sites tests and release asset validation pass on the final code/assets.
-- [ ] Deployed GitHub Pages paths, asset loading, navigation and fallback are verified on the public URL.
+- [x] Deployed GitHub Pages paths, asset loading, navigation and fallback are verified on the public URL.
 
 ## Performance measurement protocol
 
@@ -96,3 +96,11 @@ The final snapshot reported 213 draw calls and 111,550 triangles. Chapter cache 
 ### Evidence
 
 `qa/production-closed.png`, `qa/production-childhood.png`, chapter browser captures 01–12, `qa/chapter-11-reverse.png`, `qa/phone-portrait.png`, `qa/phone-reading.png`, and `qa/phone-landscape.png` record the inspected states. Development captures may include the inspection panel; production captures do not.
+
+## Public deployment verification — 11 September 2026
+
+The first clean GitHub runner exposed an ordering error: Sites packaging checks preceded the build. Commit `c130d5c` moved that check after build generation, preserving the starter tests and worker. [Run 34654374350](https://github.com/BhavyaAk25/simone-weil/actions/runs/34654374350) then passed type checking, 19 tests, all 13 asset validations, production build, four packaging tests and Pages deployment.
+
+Verified https://bhavyaak25.github.io/simone-weil/ in the in-app browser: complete spine-facing book, Enter entrance, childhood, contents jump to chapter 12, reverse turn to chapter 11, raised print and full source dialog, Escape, and illustrated edition onward navigation. Both the default narrow viewport and 1440 × 1000 desktop layout were inspected. No console warnings or errors were recorded during this live pass. Runtime assets and posters loaded under the repository subpath.
+
+This final documentation update changes no runtime code or assets.
