@@ -20,9 +20,9 @@ Open `http://localhost:4173/simone-weil/`. Click the spine or the opening button
 ```sh
 npm run typecheck
 npm test
-npm run test:sites
 npm run validate:assets
 npm run build
+npm run test:sites
 npm run preview -- --port 4173
 ```
 
