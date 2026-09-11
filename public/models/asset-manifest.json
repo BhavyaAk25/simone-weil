@@ -1,0 +1,178 @@
+{
+  "version": 2,
+  "coordinates": "gltf-y-up",
+  "pageSurfaceY": 0.202,
+  "pageSurfaceFormula": ".202+.115*sin(pi*u)*exp(-1.8*u)-.007*u*u*cos((v-.5)*pi), u=(abs(X)-.018)/2.4, v=(1.55-Z)/3.1",
+  "leftTextRect": [
+    -2.25,
+    -0.9,
+    -0.2,
+    1.43
+  ],
+  "readingPanel": {
+    "hinge": "ReadingHinge",
+    "mesh": "ReadingPanel",
+    "clip": "reading",
+    "degrees": 18,
+    "duration": 1,
+    "localExtentX": [
+      -1.025,
+      1.025
+    ],
+    "localExtentZ": [
+      -2.33,
+      0
+    ],
+    "textOffsetY": 0.01
+  },
+  "bookDefaultPose": "open",
+  "readingDefaultPose": "flat",
+  "chapterDefaultPose": "unfolded",
+  "assets": [
+    {
+      "file": "book.glb",
+      "bytes": 2146264,
+      "meshes": 66,
+      "materialPrimitives": 68,
+      "animations": {
+        "open": 2,
+        "reading": 1,
+        "turn": 1.4
+      },
+      "poster": "../posters/book.webp",
+      "source": "../../assets/source/book.blend"
+    },
+    {
+      "file": "chapter-01.glb",
+      "bytes": 2086140,
+      "meshes": 8,
+      "materialPrimitives": 38,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-01.webp",
+      "source": "../../assets/source/chapter-01.blend"
+    },
+    {
+      "file": "chapter-02.glb",
+      "bytes": 1629880,
+      "meshes": 5,
+      "materialPrimitives": 29,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-02.webp",
+      "source": "../../assets/source/chapter-02.blend"
+    },
+    {
+      "file": "chapter-03.glb",
+      "bytes": 1485856,
+      "meshes": 6,
+      "materialPrimitives": 26,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-03.webp",
+      "source": "../../assets/source/chapter-03.blend"
+    },
+    {
+      "file": "chapter-04.glb",
+      "bytes": 465604,
+      "meshes": 5,
+      "materialPrimitives": 16,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-04.webp",
+      "source": "../../assets/source/chapter-04.blend"
+    },
+    {
+      "file": "chapter-05.glb",
+      "bytes": 613344,
+      "meshes": 5,
+      "materialPrimitives": 22,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-05.webp",
+      "source": "../../assets/source/chapter-05.blend"
+    },
+    {
+      "file": "chapter-06.glb",
+      "bytes": 1332936,
+      "meshes": 6,
+      "materialPrimitives": 19,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-06.webp",
+      "source": "../../assets/source/chapter-06.blend"
+    },
+    {
+      "file": "chapter-07.glb",
+      "bytes": 866400,
+      "meshes": 6,
+      "materialPrimitives": 21,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-07.webp",
+      "source": "../../assets/source/chapter-07.blend"
+    },
+    {
+      "file": "chapter-08.glb",
+      "bytes": 452884,
+      "meshes": 5,
+      "materialPrimitives": 18,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-08.webp",
+      "source": "../../assets/source/chapter-08.blend"
+    },
+    {
+      "file": "chapter-09.glb",
+      "bytes": 1515588,
+      "meshes": 5,
+      "materialPrimitives": 26,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-09.webp",
+      "source": "../../assets/source/chapter-09.blend"
+    },
+    {
+      "file": "chapter-10.glb",
+      "bytes": 2779296,
+      "meshes": 5,
+      "materialPrimitives": 23,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-10.webp",
+      "source": "../../assets/source/chapter-10.blend"
+    },
+    {
+      "file": "chapter-11.glb",
+      "bytes": 349412,
+      "meshes": 6,
+      "materialPrimitives": 20,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-11.webp",
+      "source": "../../assets/source/chapter-11.blend"
+    },
+    {
+      "file": "chapter-12.glb",
+      "bytes": 260596,
+      "meshes": 5,
+      "materialPrimitives": 16,
+      "animations": {
+        "unfold": 1
+      },
+      "poster": "../posters/chapter-12.webp",
+      "source": "../../assets/source/chapter-12.blend"
+    }
+  ]
+}

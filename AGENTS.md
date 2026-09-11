@@ -1,0 +1,42 @@
+# Prototype Instructions
+
+## The Life of Simone Weil
+
+Implement the approved twelve-spread, English, interactive biography. The approved colour reference is `docs/references/dark-walnut.png`; it establishes materials and atmosphere, not a flattened substitute for the real 3D book. Entry is a centred, spine-facing closed book titled "The Life of Simone Weil", extraction, front-cover reveal, descent to the walnut desk, opening, then unfolding scenery. Desktop text belongs on the paper; mobile text may sit below the canvas. Guided buttons/swipe/keyboard, restrained camera motion, opt-in audio, and reduced-motion reading are required.
+
+### Ownership and collaboration
+
+- Main agent: application, integration, shared types, project docs, dependency changes, git and publishing.
+- Content agent: `src/content/chapters.ts`, `docs/STORY.md`, `docs/SOURCES.md`, quotation entries in `CREDITS.md` only. Verify exact quotations and label translations, retrospective dates, and posthumous compilations.
+- Blender agent: `scripts/blender/`, `assets/source/`, `public/models/`, `public/posters/`, and `docs/PIPELINE.md`. Only this agent may operate the shared Blender application. No application source, git, or publishing changes.
+- Verification agent: `tests/book*`, `scripts/validate-assets.mjs`, `docs/QA.md`, `design-qa.md`; read-only browser/app review. Coordinate browser ownership before acting. No application fixes without an explicit reassignment.
+- Do not overwrite another agent's files. Send interface changes to the main agent first.
+- Ownership handoff, 10 September: the Blender and verification agents were interrupted by account usage limits after saving their work. The main agent assumes their file ownership while they are inactive, including the Blender export pipeline. Reassign explicitly before either agent resumes; never run concurrent Blender authors.
+
+### Quality gates
+
+### User correction — 9 September 2026
+
+The first prototype was rejected as visually sloppy and unlike the selected reference. This is a durable requirement, not optional polish. Do not expand a crude technical demonstration into twelve crude scenes.
+
+- Setting: beautiful natural walnut furniture, subtle fine grain, soft amber window light and a deep, softly focused bookshop. No oversized streaky wood texture or rows of untextured rectangular placeholder books.
+- Book: substantial tobacco leather, restrained brass embossing, visibly layered curved ivory pages and a convincing spine. Match the craftsmanship and visual richness of `docs/references/dark-walnut.png`.
+- Scenery: layered, detailed paper architecture and organic silhouettes with intentional composition. Avoid repetitive box buildings, stick trees and sparse generic props.
+- Animation: every paper piece remains attached to a hinge on the page. Fold completely before turning; unfold only after the book/page is open and settled. No instantaneous default-pose appearance, floating pieces, clipping through covers or overlapping transitions.
+- Verify actual browser frames during entrance and both turn directions, not only endpoint renders. One polished spread must pass before chapter expansion.
+- Keep these decisions, measured QA results and remaining limitations in Markdown. Never claim visual acceptance based only on a passing build or a Blender render.
+- Readability correction (10 September): the writing should be slightly raised/tilted in 3D toward the visitor, with larger, darker, clearer lettering. Use a real folded paper reading panel attached to the page; it must fold down before turning and must never float independently. Preserve the semantic reading view and visible mobile text.
+
+First export only the book, one finished childhood spread, and the neighboring education spread. The main agent must verify the entrance and both turn directions in a browser before detailed production of chapters 3–12. Asset paths and transforms become fixed at that gate.
+
+Use actual Blender mesh assets and deterministic baked folding/page animations, not screenshots masquerading as 3D. Do not change source quotations without updating their sources. Record real verification results, distinguish viewport emulation from physical-device testing, and never claim a Blender render proves the website works.
+
+Keep credentials out of files. No purchases. The user authorized creation of `BhavyaAk25/simone-weil`, pushing scoped changes, and GitHub Pages publication after verification. Preserve the starter's Sites build files. Run typecheck, build, tests, asset checks and browser acceptance before publishing; deploy `dist/client` with the `/simone-weil/` base path.
+
+Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
+
+Before making substantial visual changes, use the Product Design plugin's `get-context` skill when the visual source is unclear or no longer matches the current goal. When the user gives durable prototype-specific design feedback, preferences, or decisions, record them in `AGENTS.md`.
+
+When implementing from a selected generated mock, treat that image as the source of truth for layout, component anatomy, density, spacing, color, typography, visible content, and hierarchy.
+
+Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts/prepare-sites-build.mjs`, and `tests/sites-worker.test.mjs` intact so the same local prototype can be handed to Sites. Before a Sites handoff, run `npm run build` and `npm run test:sites`; the build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.

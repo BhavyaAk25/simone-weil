@@ -1,0 +1,36 @@
+# Credits
+
+## Story and quotations
+
+Biography: original English prose prepared for this project by Codex, grounded in the [Stanford Encyclopedia of Philosophy](https://plato.stanford.edu/entries/simone-weil/), [American Weil Society](https://simoneweilsociety.org/about), [Bibliothèque nationale de France](https://www.bnf.fr/fr/simone-weil-la-pensee-en-action), and the primary writings recorded in [the source register](docs/SOURCES.md).
+
+Quotation author: **Simone Weil (1909–1943)**. All twelve displayed English excerpts are translations prepared for this project by Codex from the linked French originals. No existing English translator is credited for this project’s wording.
+
+| Spreads | French work and checked edition | Editorial status |
+| --- | --- | --- |
+| 1, 2, 7 | *Attente de Dieu*, La Colombe, 1950 | Letters and essays collected after Weil’s death; childhood, student years, and spiritual experiences are viewed retrospectively. |
+| 3, 5 | *La Condition ouvrière*, Gallimard, 1951 | Two excerpts from “Lettre à une élève (1934),” in a posthumous collection. |
+| 4 | *Oppression et Liberté*, Gallimard, 1955 | Essay composed in 1934; posthumous edition. |
+| 6 | *L’Espagnole*, Abrüpt, 2018 | Modern reprint of the letter to Georges Bernanos, usually dated 1938. |
+| 8 | *La Source grecque*, Gallimard, 1953 | The Iliad essay first appeared during Weil’s life, in 1940–1941; the collection is posthumous. |
+| 9, 12 | *La Pesanteur et la Grâce*, Plon, 1948 | Notebook extracts selected and arranged by Gustave Thibon; collection first published in 1947. |
+| 10 | *L’Enracinement*, Gallimard, 1949 | Written in 1943 and published posthumously. |
+| 11 | *Écrits de Londres et dernières lettres*, Gallimard, 1957 | “La Personne et le Sacré,” written in 1943; posthumous collection. |
+
+The source register provides the link, locator, date, and context for each quotation. Source access: **8 September 2026**. Use is limited to short attributed excerpts. Modern editorial introductions, annotations, and published English translations are not included. Keep attribution and links with reused excerpts.
+
+## Visuals, type and sound
+
+- Book and paper scenery: original Blender geometry constructed for this project with reproducible Python scripts. Editable sources and animation conventions accompany the runtime exports.
+- Paper and walnut texture maps: generated for this project with OpenAI Image Generation. Exact prompts and processing are recorded in [MATERIALS](docs/MATERIALS.md).
+- Bookshop environment: generated image used only as the distant setting; the interactive book remains 3D geometry and casts real rendered shadows. See [BOOKSHOP-ASSET](docs/BOOKSHOP-ASSET.md).
+- Paris architectural engraving: original generated albedo artwork printed onto the actual folding wall meshes, with modeled roofs and paper edges. See [ARCHITECTURE-ASSET](docs/ARCHITECTURE-ASSET.md).
+- Cormorant Garamond: Christian Thalmann and contributors, SIL Open Font License 1.1, distributed through Fontsource.
+- Inter: Rasmus Andersson and contributors, SIL Open Font License 1.1, distributed through Fontsource.
+- Interface icons: Phosphor Icons, MIT license, through `@phosphor-icons/react`.
+- Ambient and page sounds: original filtered-noise synthesis in `src/book/audio.ts`; no external audio recordings.
+- Three.js, React, Vite and supporting libraries retain their respective package licenses. Blender is the authoring tool; no Blender executable is distributed with this site.
+
+The reference images establish visual direction. They are not presented as renders of the implemented book. Scenes are artistic interpretations, not claims to reconstruct undocumented biographical events.
+
+Font and icon license notices are included in `public/licenses/`. Blender cover lettering uses the macOS Baskerville typeface converted to mesh outlines; the font software is not redistributed.

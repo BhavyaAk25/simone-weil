@@ -1,0 +1,98 @@
+# Verification record
+
+## Release status
+
+**Local release gate passed, 11 September 2026.** All twelve revised scenes and both navigation directions were checked in the browser. Public deployment verification follows below. Earlier failures are retained as history; they do not describe the final exports.
+
+The selected appearance reference is `docs/references/dark-walnut.png`. The required correction is recorded in `AGENTS.md` and `docs/REVISION.md`.
+
+## Executed checks — 9 September 2026
+
+| Check | Actual result | Meaning and limit |
+|---|---|---|
+| `npm test -- --run tests/book-motion.test.ts tests/book-assets.test.ts` | **15 tests passed**, 2 files | Sequential folding, page turn, unfolding, safe scene visibility, entrance cover ordering, monotonic easing, navigation guards, and binary/morph validator fixtures. This proves the pure schedule and guard behavior, not the rendered result. |
+| `npm test` | **Failed**: Vitest collected `tests/sites-worker.test.mjs`, a Node test-runner file, and reported “No test suite found.” The 15 Vitest tests passed; the four Node subtests also emitted passing TAP results. | Main agent must separate the two test runners in configuration. Preserve the Sites tests. |
+| `node scripts/validate-assets.mjs --milestone --json` against the **old** exports | **Book passed; chapters 1 and 2 failed.** | The validator reads binary vertices and evaluates animation transforms/morphs. It detected the exact collapsed-geometry problem instead of accepting the open-pose preview. New exports have not been checked in this record yet. |
+| Revised entrance/forward/back browser frames | **Pending** | Must inspect intermediate poses, not only endpoint screenshots. |
+| All 12 spreads and asset-failure recovery | **Pending** | Required before publishing. |
+| Physical-phone performance | **Not measured** | Desktop viewport emulation is not a phone benchmark. |
+
+The old chapter 1 collapsed bounds were X `[-2.1456, 2.5233]`, Y `[0.0418, 0.6837]`, Z `[-1.4007, 1.2759]`. Chapter 2 collapsed bounds were X `[-1.6600, 2.3550]`, Y `[-0.0116, 0.6660]`, Z `[-1.2400, 1.2000]`. Both had geometry far above or below the paper when supposedly flat. These results concern the rejected assets, not a future revised export.
+
+## Revision checks — 10 September 2026
+
+- `npm test` now scopes Vitest to the book tests. **19 tests passed across 3 files** after adding all-twelve manifest checks for complete ordered IDs, unique chapter/asset addresses, 45–65-word prose, short quotation provenance, and paths compatible with GitHub Pages. This resolves the earlier mixed-test-runner failure.
+- The first revised book and chapters 1–2, before the raised reading panel revision, passed all structural and 21-pose checks. Their combined transfer size was 9.45 MiB. Chapter 1 folded Y was `[0.221, 0.295]`; chapter 2 was `[0.221, 0.2905]`.
+- The subsequent book export with `ReadingHinge`, `ReadingPanel`, and a one-second `reading` clip passed. It is 2,134,688 bytes, 68 material primitives, and 32,304 triangles. The panel is flat when `reading=0` and reaches the agreed 18° reading pose at `reading=1`. Combined `open=0, reading=0` sampling confirms the panel remains inside the compact closed book.
+- Revised chapter exports are still being finalized for the more curved paper surface. The validator's previous global Y floor needs to distinguish the lower gutter from the higher page crown; this is being coordinated with the Blender owner. No browser acceptance or visual gate is inferred from these interim asset checks.
+
+## Asset validation contract
+
+Run `npm run validate:assets -- --milestone` during the first-spread gate. The default `npm run validate:assets` requires the book plus all twelve chapters, editable `.blend` files, and fallback posters.
+
+The validator checks GLB headers and binary bounds; embedded buffers/textures; material and stable book-node names; nonempty triangulated geometry and valid indices; required animation clips; target nodes, key times and sample counts; actual world-space vertices in sampled poses; and morph-based page endpoints on both sides of the spine. It requires each chapter mesh to descend from an animated hinge. The book also requires `ReadingHinge`, `ReadingPanel`, and the `reading` clip; checks sample the reading and cover clips together to verify the flat, raised and closed poses.
+
+Agreed authoring limits: book at most 5 MiB, chapter at most 4 MiB, first three GLBs targeted below 10 MiB. Structural render ceilings are 256 material primitives and 250,000 triangles per GLB. These are ceilings, not frame-rate guarantees.
+
+Folded scenery fits X ±2.50 and Z ±1.64, with nominal Y `[0.213, 0.320]`; the validator permits 0.003 units of numerical tolerance on Y. Maximum open height is 2.40 with the same tolerance. It samples 21 unfolding poses and checks paper penetration and the book footprint. This detects large hinge/extent defects; it does not prove absence of every triangle-to-triangle collision, shadow artifact, visibility jump, or text overlap.
+
+## Browser acceptance checklist — final local status
+
+- [x] Closed state shows one centered, spine-facing book with the complete title.
+- [x] Click, tap and Enter perform extraction, cover reveal, descent, opening, and unfolding in that order.
+- [x] No chapter is exposed through the closed or moving cover. Inspect frames before opening, during opening, just before reveal, and during unfolding.
+- [x] Skip opening lands in the complete first spread. Reduced motion starts there without the entrance.
+- [x] A forward turn folds all outgoing scenery, moves the page, then unfolds the incoming scene. Inspect boundaries and the middle of the crossing.
+- [x] The reverse turn has the same safe ordering and the sheet moves back correctly.
+- [x] Rapid repeated input, boundary navigation, and contents jumps never overlap transitions or select the wrong text.
+- [x] Every chapter has its own finished scene, readable paragraph, quotation, and source.
+- [x] Missing chapter assets show a recoverable error while preserving the current spread.
+- [ ] Initial asset failure, unavailable WebGL, and context loss expose a readable illustrated edition.
+- [x] Sound remains off until enabled and can be muted; failures do not block reading.
+- [x] Keyboard focus is visible, dialogs contain focus and close with Escape, controls have names, and chapter changes are announced.
+- [x] Desktop writing stays on the paper without scene overlap; phone portrait and landscape show the same text below the canvas.
+- [x] Walnut, leather, paper edges, scene detail, lighting and composition pass direct screenshot comparison with the reference. Record intentional differences separately.
+- [x] Type check, production build, focused tests, Sites tests and release asset validation pass on the final code/assets.
+- [ ] Deployed GitHub Pages paths, asset loading, navigation and fallback are verified on the public URL.
+
+## Performance measurement protocol
+
+Record the actual device model, OS, browser/version, viewport, display scale, renderer pixel ratio, and whether the browser uses hardware acceleration. Record loading conditions and at least a complete entrance plus repeated forward/back turns after warmup. Report measured frame times or frames per second, draw calls, triangles and cache/texture counts; distinguish animation from idle readings.
+
+Target near 60 fps on the desktop and at least 30 fps on a representative physical phone. No phone performance claim is valid until a physical device is measured. Repeated chapter jumps and a return to a previous chapter should also show bounded geometry/texture memory rather than monotonic growth.
+
+## Live revision checks — 10 September, main agent
+
+- First-two gate completed in the in-app Chromium browser at 1440 × 1000: spine-first entry, cover reveal, settled reading, forward crossing, education, flat outgoing pose at 0.24, reverse crossing at 0.5, return to childhood. A 390 × 844 horizontal pointer swipe initiated the next turn; HTML prose remained below the stage.
+- Normal opening completed at 1280 × 720 and 1440 × 1000. Captures are under `docs/qa/`.
+- Contents showed all twelve chapter names; jump 1 → 3 loaded the correct scene and text.
+- While chapter 12 had not yet been exported, a 3 → 12 jump returned a recoverable message and preserved chapter 3. The following successful navigation cleared the error.
+- Sound was initially off; enabling changed the control to Mute sound, and muting restored Enable sound. This checks activation and UI state, not a calibrated audio listening test.
+- Reading dialog displayed the French work link, edition/page locator, project translation and retrospective context. Escape closed it and returned control to the book.
+- User-selectable reduced motion in About preserves the current chapter. Enabling it on chapter 3 then advancing produced chapter 4 immediately. Keyboard Right then produced chapter 5.
+- Type check, 19 focused tests, four Sites tests and milestone asset validation passed. Release validation remains pending assets 3–12 and their final reexports.
+
+
+## Final local release checks — 11 September 2026
+
+- Type checking passed; 19 focused tests and four Sites tests passed. Production build passed and retains all three required Sites artifacts. Vite reports a non-blocking large-chunk warning: main JavaScript 896.26 kB, 242.85 kB gzip.
+- Release asset validation: **13 passed, zero failed**. Every GLB has its editable Blender source and illustrated poster. Final fixes corrected folded foliage extent, carriage wheel/page penetration and required paper materials.
+- Normal browser navigation covered chapters 1–12 forwards and 12–1 backwards. Six rapid Right presses advanced exactly once. Both boundaries, contents jump 1–12 and return navigation worked.
+- Entrance click and Enter, skip, live reduced motion, and saved reduced-motion reload were checked. Saved reduced motion reloads directly into the first open spread. Forward/reverse boundary and midpoint frames were inspected during the first-spread gate.
+- All chapter scenery and print were visually inspected. Chapter 11 exposed a quotation/attribution overlap, corrected by measuring the entire text block before sizing the paragraph. The corrected reverse capture confirms separation.
+- Missing chapter assets preserved the current chapter and recovered on subsequent navigation. Simulated graphics context loss displayed the recovery screen; the illustrated edition preserved the chapter and allowed onward reading. Direct illustrated mode is available with `?read`. Initial network failure and a machine entirely lacking WebGL were not separately induced in this final pass.
+- Reading/source dialog, Escape, named controls, visible keyboard focus, semantic chapter announcements, and opt-in sound/mute state were exercised. This was not a screen-reader audit or calibrated audio test.
+- Portrait 390 × 844 and landscape 844 × 390 layouts were exercised, including swipe, scrolling to the complete text and source dialog. These are desktop viewport checks, not physical-phone measurements.
+- Production preview at 1440 × 1000 loaded the closed spine and complete childhood spread; console errors/warnings were empty. Final reference and production screenshot were opened together after corrections; see `design-qa.md` for intentional artistic differences.
+
+### Actual desktop animation measurements
+
+MacBook Air Mac16,12, Apple M4 (10 cores), 16 GB, macOS 15.3; in-app Chromium 152.0.0.0; 1280 × 720 viewport; renderer DPR capped at 1.75. Local server, warm chapter traversal, normal animations (inspection hold disabled).
+
+Entrance plus eleven forward turns: 2,058 animation frame samples, approximately **60 fps**, 95th percentile **18 ms**. After resetting measurements, eleven backward turns: 1,793 samples, **60 fps**, P95 **18 ms**, longest recorded frame **18 ms**. The latter snapshot is saved in `qa/desktop-metrics.json`.
+
+The final snapshot reported 213 draw calls and 111,550 triangles. Chapter cache stayed at two or three; observed geometry counts 87–138 and texture counts 11–14 did not grow monotonically. These are runtime frame-interval observations on this laptop, not laboratory benchmarks. GPU acceleration was not independently profiled. **Physical-phone 30 fps target remains unmeasured.**
+
+### Evidence
+
+`qa/production-closed.png`, `qa/production-childhood.png`, chapter browser captures 01–12, `qa/chapter-11-reverse.png`, `qa/phone-portrait.png`, `qa/phone-reading.png`, and `qa/phone-landscape.png` record the inspected states. Development captures may include the inspection panel; production captures do not.
