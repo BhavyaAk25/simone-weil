@@ -31,3 +31,9 @@ First-two browser checks and the 19 focused tests passed before expansion. Final
 ### Final readability and release correction — 11 September
 
 The real 18-degree reading panel now sizes the paragraph using the measured space needed for the complete quotation and attribution. Keep this reservation when changing copy; never clamp the attribution into the quote. Reduced-motion selection persists and reloads directly into reading. All twelve chapter assets passed release validation and were traversed in both directions. See QA for actual measurements and the physical-phone limitation.
+
+### Scoped follow-up — 11 September, evening
+
+Removed the page-turn camera orbit/zoom; the sheet now curls inside fixed framing. Added the front-cover photograph and upright generated brass/sepia spine engraving. Removed the lower-left motto and replaced visible “twelve” labels with “12”. Replaced noise ambience with an original quiet guitar-style loop. The user's subsequent correction makes the opening click/tap/Enter start music, with mute retained.
+
+The closed invitation now reads “A story of courage, belonging, and independence.” The illustrated edition exposes a 3D button beside the page counter and returns to the same chapter. Overlapping tree leaves have distinct depth layers; gear face, spokes and axle have separated surfaces to prevent flicker. No narrative or scene composition was redesigned.

@@ -13,7 +13,7 @@ npm ci
 npm run dev -- --port 4173
 ```
 
-Open `http://localhost:4173/simone-weil/`. Click the spine or the opening button, tap, or press Enter. Navigate with the arrows, horizontal swipes or the contents. Sound starts only after enabling it. Reduced-motion preferences bypass the entrance and page animations.
+Open `http://localhost:4173/simone-weil/`. Click the spine or the opening button, tap, or press Enter. Navigate with the arrows, horizontal swipes or the contents. Music starts with the opening click, tap or Enter and can be muted. A visible 3D control returns from the illustrated edition to the same chapter. Reduced-motion preferences bypass the entrance and page animations.
 
 `?read` opens the illustrated edition directly. In development only, `?inspect` exposes a frame-position control and rendering measurements for inspecting the real entrance and turn sequence. Set progress to `0`, start an animation, then advance to a value between `0` and `1`. Uncheck the frame hold to run normally. These tools are excluded from the production interface.
 

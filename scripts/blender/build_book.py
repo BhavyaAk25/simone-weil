@@ -3,8 +3,8 @@
   blender --background --factory-startup --python scripts/blender/build_book.py -- --milestone
   blender --background --factory-startup --python scripts/blender/build_book.py -- --chapters 3 4 ... 12
 
-Coordinates are authored Z-up and exported as glTF Y-up. No downloaded art,
-external models, simulation, or UI state is needed.
+Coordinates are authored Z-up and exported as glTF Y-up. Portrait and facade
+textures are bundled locally; no external models, simulation or UI state is needed.
 """
 import bpy, math, random, sys, json, argparse, struct
 from pathlib import Path
@@ -153,6 +153,29 @@ def text(name,body,loc,size,mat='ink',parent=None,rotation=(math.pi/2,0,0),align
     bpy.ops.object.convert(target='MESH');obj.select_set(False)
     return obj
 
+def portrait(name,loc,width,parent,rotation,artistic=False):
+    material_name='simone_engraving' if artistic else 'simone_portrait'
+    if material_name not in M:
+        mat=material(material_name,'FFFFFF',.82)
+        filename='simone-weil-spine.jpg' if artistic else 'simone-weil-portrait.png'
+        image=bpy.data.images.load(str(ROOT/'public/textures'/filename))
+        image.pack()
+        node=mat.node_tree.nodes.new('ShaderNodeTexImage');node.image=image
+        mat.node_tree.links.new(node.outputs['Color'],mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+    height=width*(4/3 if artistic else 868/657)
+    bpy.ops.mesh.primitive_plane_add(size=1)
+    obj=bpy.context.object;obj.name=name
+    obj.scale=(width,height,1)
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    obj.location=loc;obj.rotation_euler=rotation
+    attach(obj,material_name,parent)
+    # A thin brass edge keeps the photograph inset like a bound frontispiece.
+    for x in [-width/2-.009,width/2+.009]:
+        box(name+' border',(x,0,-.001),(.010,height+.028,.002),'brass',obj,0)
+    for y in [-height/2-.009,height/2+.009]:
+        box(name+' border',(0,y,-.001),(width+.028,.010,.002),'brass',obj,0)
+    return obj
+
 def animate(obj,path,values,clip):
     for frame,value in values:
         setattr(obj,path,value);obj.keyframe_insert(data_path=path,frame=frame)
@@ -211,19 +234,16 @@ def book():
     for x in [-2.23,-.25]:
         for y in [-1.34,1.34]:
             for sign in [-1,1]:line('Embossed corner flourish',(x,y,-.285),(x+sign*.055,y+.05,-.285),.004,'brass',cover)
-    text('Front title','THE LIFE OF\nSIMONE WEIL',(-1.24,.24,-.287),.235,'brass',cover,rotation=(math.pi,0,math.pi))
-    text('Front subtitle','A LIFE IN TWELVE CHAPTERS',(-1.24,-1.08,-.287),.067,'brass',cover,rotation=(math.pi,0,math.pi))
-    # Botanical embossing: a narrow symmetrical laurel, beneath the title.
-    for sign in [-1,1]:
-        for i in range(10):
-            yy=-.79+i*.046
-            line('Gilt laurel stem',(-1.24,yy,-.286),(-1.24+sign*.115*(1-i/16),yy+.08,-.286),.005,'brass',cover)
+    text('Front title','THE LIFE OF\nSIMONE WEIL',(-1.24,.94,-.287),.235,'brass',cover,rotation=(math.pi,0,math.pi))
+    portrait('Front portrait',(-1.24,-.18,-.289),1.04,cover,(math.pi,0,math.pi))
+    text('Front subtitle','A LIFE IN 12 CHAPTERS',(-1.24,-1.08,-.287),.067,'brass',cover,rotation=(math.pi,0,math.pi))
     spine=empty('Spine')
     box('Spine leather',(-.045,0,.255),(.13,3.30,.49),'leather',spine,.054)
     for y in [-1.40,-1.23,1.23,1.40]:
         box('Raised sewn band',(-.118,y,.255),(.021,.052,.447),'leather_dark',spine,.015)
         box('Fine spine gilt',(-.132,y,.255),(.004,.009,.405),'brass',spine,.001)
-    text('Spine title','The Life of Simone Weil',(-.132,0,.255),.156,'brass',spine,rotation=(math.pi/2,0,-math.pi/2))
+    text('Spine title','The Life of Simone Weil',(-.134,.20,.255),.142,'brass',spine,rotation=(math.pi/2,0,-math.pi/2))
+    portrait('Spine portrait',(-.135,-.91,.255),.31,spine,(math.pi,math.pi/2,0),artistic=True)
     animate(spine,'scale',[(0,(1,1,1)),(60,(1,1,.2))],'open')
     # Individually curved layers, alternating tiny offsets: no rectangular page blocks.
     rng=random.Random(104)
@@ -264,7 +284,7 @@ def book():
             u=(idx%(nx+1))/nx;r=.02+u*2.4
             # Curl along the sheet's arc length: the free edge rolls inward as
             # the sheet rises, keeping the turn inside the reading composition.
-            bend=.8*math.sin(t*math.pi)
+            bend=2.6*math.sin(t*math.pi)
             base=t*math.pi-bend/2
             if abs(bend)<1e-6:
                 xx=r*math.cos(t*math.pi);zz=r*math.sin(t*math.pi)
@@ -354,10 +374,12 @@ def tree(name,x,y,h,parent,mat='leaf',seed=1):
         z=h*(.15+i*.057);sign=(-1)**i
         tip=(x+sign*h*(.18+.11*rng.random()),z+h*(.20+.06*rng.random()))
         line(name+' twig',(x,y,z),(tip[0],y,tip[1]),.009,mat,parent)
-        leaf_shape(name+' pointed leaf',(x+sign*.012,z),tip,h*.065,y-.006,mat if i%3 else 'leaf_light',parent)
+        # Stagger overlapping cut leaves so their printed faces are never coplanar.
+        layer_y=y-.006-i*.002
+        leaf_shape(name+' pointed leaf',(x+sign*.012,z),tip,h*.065,layer_y,mat if i%3 else 'leaf_light',parent)
         tx,tz=tip
-        leaf_shape(name+' secondary leaf',(tx-sign*h*.08,tz-h*.06),(tx+sign*h*.105,tz+h*.08),h*.045,y-.004,mat,parent)
-    leaf_shape(name+' crown',(x+.01,h*.70),(x+.04,h),h*.08,y-.006,mat,parent)
+        leaf_shape(name+' secondary leaf',(tx-sign*h*.08,tz-h*.06),(tx+sign*h*.105,tz+h*.08),h*.045,layer_y-.001,mat,parent)
+    leaf_shape(name+' crown',(x+.01,h*.70),(x+.04,h),h*.08,y-.030,mat,parent)
 
 def canopy(name,x,y,w,h,parent,mat='paper_shadow',seed=1):
     rng=random.Random(seed)

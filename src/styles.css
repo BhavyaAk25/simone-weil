@@ -43,8 +43,8 @@ a { color: inherit; text-underline-offset: 4px; }
 .quiet-link { font-size: 10px; color: var(--muted); margin-top: 30px; padding: 9px; border-bottom: 1px solid #ad967039; }
 .skip-entrance { position: absolute; bottom: 46px; right: 48px; z-index: 4; font-size: 11px; color: var(--muted); }
 .book-footer { position: absolute; bottom: 0; left: 0; right: 0; z-index: 3; height: 100px; padding: 0 48px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
-.footer-note { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-style: italic; color: var(--muted); }
-.page-navigation { display: flex; align-items: center; gap: 28px; }
+.page-navigation { grid-column: 2; display: flex; align-items: center; gap: 28px; }
+.return-3d { min-width: 36px; min-height: 40px; font-size: 12px; border: 1px solid #b39b775e; border-radius: 5px; }
 .round-button { width: 47px; height: 47px; border: 1px solid #b39b775e; border-radius: 50%; display: grid; place-items: center; transition: background .2s, border-color .2s; }
 .round-button:not(:disabled):hover { background: #a58a511c; border-color: var(--brass); }
 .page-count { display: flex; align-items: center; gap: 13px; font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; padding: 15px 4px; }
@@ -104,7 +104,7 @@ a { color: inherit; text-underline-offset: 4px; }
 .is-illustrated .chapter-reading cite { color: #b6a082; }
 @keyframes arrive { from { opacity: 0; transform: translate(-50%,10px); } to { opacity: 1; transform: translate(-50%,0); } }
 @media (min-width:1100px) and (max-height:780px) {
-  .invitation { bottom: 4vh; } .invitation-note { display: none; } .book-footer { height: 80px; }
+  .invitation { bottom: 4vh; } .invitation-note { font-size: 15px; margin-top: 8px; } .book-footer { height: 80px; }
   .topbar { padding-top: 18px; padding-bottom: 18px; } .wordmark > span { font-size: 22px; }
 }
 @media (max-width:1099px) {
@@ -114,7 +114,7 @@ a { color: inherit; text-underline-offset: 4px; }
   .is-reading .book-stage { position: relative; inset: auto; height: min(65vw,62svh); min-height: 360px; margin-top: 0; }
   .is-reading .chapter-reading:not(.is-visible) { position: relative; clip: auto; width: auto; height: auto; white-space: normal; overflow: visible; margin: 0 auto; padding: 25px 34px 35px; max-width: 650px; color: var(--ink); background-image: url('../public/textures/paper.webp'); background-size: 650px; }
   .is-reading .book-footer { position: fixed; background: #30231bf5; height: 85px; padding: 0 28px; border-top: 1px solid #ba9e6540; }
-  .footer-note { display: none; } .book-footer { grid-template-columns: 1fr auto; } .reading-tools { gap: 22px; }
+  .book-footer { grid-template-columns: 1fr auto; } .page-navigation { grid-column: 1; } .reading-tools { gap: 22px; }
   .page-navigation { gap: 20px; } .chapter-reading .source-link { margin-top: 8px; }
   .is-reading .topbar { position: absolute; } .is-reading .chapter-reading h2 { font-size: 39px; }
   .is-reading .chapter-paragraph { font-size: 22px; } .status-toast { position: fixed; bottom: 95px; }

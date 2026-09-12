@@ -36,11 +36,11 @@ def gear(name,x,y,z,r,parent,mat='gilt_dark'):
         angle=i*math.tau/64;rr=r*(1 if i%4 in [1,2] else .84)
         pts.append((x+rr*math.cos(angle),z+rr*math.sin(angle)))
     polygon(name+' toothed wheel',pts,.019,y,mat,parent)
-    disk(name+' recessed face',x,y-.016,z,r*.68,'paper_shadow',parent)
+    disk(name+' recessed face',x,y-.020,z,r*.68,'paper_shadow',parent)
     for i in range(6):
         a=i*math.tau/6
-        line(name+' spoke',(x,y-.024,z),(x+r*.63*math.cos(a),y-.024,z+r*.63*math.sin(a)),.022,mat,parent)
-    disk(name+' axle',x,y-.030,z,r*.16,'ink_soft',parent)
+        line(name+' spoke',(x,y-.043,z),(x+r*.63*math.cos(a),y-.043,z+r*.63*math.sin(a)),.022,mat,parent)
+    disk(name+' axle',x,y-.064,z,r*.16,'ink_soft',parent)
 
 
 def clock_face(name,x,y,z,r,parent):

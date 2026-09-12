@@ -20,3 +20,7 @@ The complete book runs in a browser, all twelve spreads can be read in both dire
 - Repository: https://github.com/BhavyaAk25/simone-weil
 - First successful release: commit `c130d5c`, [Actions run 34654374350](https://github.com/BhavyaAk25/simone-weil/actions/runs/34654374350).
 - Physical-phone performance remains unmeasured; desktop and mobile viewport checks are documented in QA.
+
+## Scoped follow-up
+
+Implemented the requested fixed-camera page turns, cover photograph/artistic spine, guitar-style music, label cleanup, revised invitation, visible same-chapter 3D return and tree/gear surface separation. See REVISION and QA for details; publication follows the existing checks.

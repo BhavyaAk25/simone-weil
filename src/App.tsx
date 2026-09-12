@@ -33,6 +33,8 @@ export function App() {
   const stageRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<BookScene | null>(null);
   const audioRef = useRef(new BookAudio());
+  const musicStarted = useRef(false);
+  const resumeChapter = useRef<number | undefined>(undefined);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const gesture = useRef<{ x: number; y: number; time: number } | null>(null);
   const [state, setState] = useState<BookSnapshot>(initialState);
@@ -64,6 +66,7 @@ export function App() {
     try {
       scene = new BookScene(stageRef.current, {
         chapters,
+        initialChapter: resumeChapter.current,
         reducedMotion: reduced,
         onChange: setState,
         onRustle: () => audioRef.current.rustle(),
@@ -101,7 +104,7 @@ export function App() {
       if (panel || event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLInputElement) return;
       if (event.key === 'ArrowRight' && reading) { event.preventDefault(); turn(state.chapter + 1); }
       if (event.key === 'ArrowLeft' && reading) { event.preventDefault(); turn(state.chapter - 1); }
-      if (event.key === 'Enter' && state.phase === 'closed' && event.target === document.body) sceneRef.current?.enter();
+      if (event.key === 'Enter' && state.phase === 'closed' && event.target === document.body) openBook();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -115,17 +118,36 @@ export function App() {
   }, [panel]);
 
   const enableSound = async () => {
+    musicStarted.current = true;
     try { setSound(await audioRef.current.toggle()); setAudioError(''); }
     catch { setAudioError('Sound is unavailable in this browser. You can continue reading.'); }
   };
 
+  const startMusic = () => {
+    if (musicStarted.current) return;
+    musicStarted.current = true;
+    void audioRef.current.toggle().then(setSound).catch(() => {
+      setAudioError('Use the sound control to enable music in this browser.');
+    });
+  };
+
+  const openBook = (skip = false) => {
+    startMusic();
+    sceneRef.current?.enter(skip);
+  };
+
   const illustrated = () => {
+    startMusic();
     setFallback(true);
     setState(previous => ({ ...previous, phase: 'reading', error: undefined }));
     setPanel(null);
   };
 
-  const retryGraphics = () => { setFallback(false); setRetry(value => value + 1); };
+  const retryGraphics = () => {
+    resumeChapter.current = state.chapter;
+    setFallback(false);
+    setRetry(value => value + 1);
+  };
 
   return <main className={`experience ${reading ? 'is-reading' : 'is-closed'} ${fallback ? 'is-illustrated' : ''}`} data-phase={fallback ? 'illustrated' : state.phase} data-chapter={state.chapter + 1}>
     {inspect && <aside className="inspection-tools" aria-label="Development animation inspection">
@@ -144,7 +166,7 @@ export function App() {
     <a className="skip-link" href="#chapter-reading" onClick={() => { if (!reading) illustrated(); }}>Skip to the story</a>
     <header className="topbar">
       <button className="wordmark" onClick={() => setPanel('edition')} aria-label="About The Life of Simone Weil">
-        <span>SIMONE WEIL</span><small>A LIFE IN TWELVE CHAPTERS</small>
+        <span>SIMONE WEIL</span><small>A LIFE IN 12 CHAPTERS</small>
       </button>
       <div className="topbar-right">
         <span className="lifespan">1909 — 1943</span>
@@ -166,7 +188,7 @@ export function App() {
         if (!start || panel) return;
         const dx = event.clientX - start.x;
         const dy = event.clientY - start.y;
-        if (state.phase === 'closed' && Math.abs(dx) < 12 && Math.abs(dy) < 12) sceneRef.current?.enter();
+        if (state.phase === 'closed' && Math.abs(dx) < 12 && Math.abs(dy) < 12) openBook();
         else if (state.phase === 'reading' && Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - start.time < 1000) turn(state.chapter + (dx < 0 ? 1 : -1));
       }}
       onPointerCancel={() => { gesture.current = null; }} />}
@@ -180,11 +202,11 @@ export function App() {
 
     {state.phase === 'closed' && !fallback && <section className="invitation">
       <p className="eyebrow">AN EXTRAORDINARY LIFE, UNFOLDING</p>
-      <button className="open-book-button" onClick={() => sceneRef.current?.enter()}><span>Open the book</span><ArrowRight size={25} weight="light" /></button>
-      <p className="invitation-note">A story of attention, courage, and belonging.</p>
+      <button className="open-book-button" onClick={() => openBook()}><span>Open the book</span><ArrowRight size={25} weight="light" /></button>
+      <p className="invitation-note">A story of courage, belonging, and independence.</p>
     </section>}
 
-    {state.phase === 'entering' && !fallback && <button className="skip-entrance text-button" onClick={() => sceneRef.current?.enter(true)}>Skip opening<ArrowRight size={17} /></button>}
+    {state.phase === 'entering' && !fallback && <button className="skip-entrance text-button" onClick={() => openBook(true)}>Skip opening<ArrowRight size={17} /></button>}
 
     {state.phase === 'error' && !fallback && <section className="error-state" role="alert">
       <BookOpen size={40} weight="thin" />
@@ -201,9 +223,9 @@ export function App() {
         <button className="source-link" onClick={() => setPanel('reading')}>Quotation & source<ArrowUpRight size={14} /></button>
       </article>
       <footer className="book-footer">
-        <span className="footer-note">A little time. A closer look.</span>
         <nav className="page-navigation" aria-label="Book pages">
           <button className="round-button" aria-label="Previous chapter" onClick={() => turn(state.chapter - 1)} disabled={busy || state.chapter === 0}><ArrowLeft size={25} weight="light" /></button>
+          {fallback && <button className="return-3d" onClick={retryGraphics} aria-label="Return to the 3D book">3D</button>}
           <button className="page-count" onClick={() => setPanel('contents')} disabled={busy} aria-label={`Chapter ${state.chapter + 1} of 12. Open contents`}><span>{String(state.chapter + 1).padStart(2, '0')}</span><span className="count-line" /><span>12</span></button>
           <button className="round-button" aria-label="Next chapter" onClick={() => turn(state.chapter + 1)} disabled={busy || state.chapter === chapters.length - 1}><ArrowRight size={25} weight="light" /></button>
         </nav>
@@ -220,7 +242,7 @@ export function App() {
       <div className="dialog-paper">
         <button className="dialog-close" aria-label="Close dialog" onClick={() => setPanel(null)}><X size={25} weight="light" /></button>
         {panel === 'contents' && <>
-          <p className="eyebrow">THE LIFE OF SIMONE WEIL</p><h2>Twelve chapters.</h2>
+          <p className="eyebrow">THE LIFE OF SIMONE WEIL</p><h2>12 chapters.</h2>
           <p className="dialog-intro">A life lived close to the questions.</p>
           <ol className="contents-list">{chapters.map((item, index) => <li key={item.id}>
             <button aria-current={index === state.chapter ? 'page' : undefined} onClick={() => { turn(index); setPanel(null); }}>

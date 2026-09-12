@@ -40,3 +40,19 @@ Before making substantial visual changes, use the Product Design plugin's `get-c
 When implementing from a selected generated mock, treat that image as the source of truth for layout, component anatomy, density, spacing, color, typography, visible content, and hierarchy.
 
 Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts/prepare-sites-build.mjs`, and `tests/sites-worker.test.mjs` intact so the same local prototype can be handed to Sites. Before a Sites handoff, run `npm run build` and `npm run test:sites`; the build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
+
+### Scoped user corrections — 11 September 2026
+
+- Page turns use fixed camera framing: no orbit, swoop or zoom. Keep the sheet turn and the necessary attached-paper folding.
+- Include Simone Weil's photographic portrait on the front cover and spine, attached to the corresponding book meshes.
+- Audio remains opt-in: quiet, soothing Spanish-guitar-inspired instrumental accompaniment. Do not claim it represents her documented musical taste.
+- Remove the bottom-left “A little time. A closer look.” text. Use “12” in interface and book labels instead of spelling “twelve”.
+- This pass is limited to these four requests; preserve the chapter content and established setting.
+- Portrait follow-up: keep the front-cover photograph; the spine uses an upright artistic brass/sepia engraved likeness matched to the book. Inspect the real spine orientation before publishing.
+
+### Follow-up controls and surface fixes — 11 September 2026
+
+- The closed-book invitation reads “A story of courage, belonging, and independence.”
+- The illustrated edition has a visible 3D return beside the page counter; restore the same chapter in 3D.
+- Latest audio preference supersedes the earlier default-off rule: starting the book through a click, tap or Enter starts music; keep a working mute control and respect browser audio restrictions. Do not force playback before a visitor gesture.
+- Fix flickering overlapping tree leaves and factory gears at the mesh surfaces, preserving their composition and the rest of the story.

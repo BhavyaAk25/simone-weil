@@ -21,6 +21,8 @@ The source register provides the link, locator, date, and context for each quota
 
 ## Visuals, type and sound
 
+- Cover and spine portrait: anonymous photograph of Simone Weil in New York, 1942, [Wikimedia Commons source and public-domain designation](https://commons.wikimedia.org/wiki/File:Simone_Weil_(1909-1943)_portrait.png). Bundled unchanged as `public/textures/simone-weil-portrait.png`; mapped onto the book meshes. Accessed 11 September 2026.
+- Spine engraving: generated with the built-in OpenAI image tool as a style transfer of the credited portrait, then resized/encoded as `public/textures/simone-weil-spine.jpg`. Prompt and provenance: [PORTRAIT-ASSET](docs/PORTRAIT-ASSET.md).
 - Book and paper scenery: original Blender geometry constructed for this project with reproducible Python scripts. Editable sources and animation conventions accompany the runtime exports.
 - Paper and walnut texture maps: generated for this project with OpenAI Image Generation. Exact prompts and processing are recorded in [MATERIALS](docs/MATERIALS.md).
 - Bookshop environment: generated image used only as the distant setting; the interactive book remains 3D geometry and casts real rendered shadows. See [BOOKSHOP-ASSET](docs/BOOKSHOP-ASSET.md).
@@ -28,7 +30,7 @@ The source register provides the link, locator, date, and context for each quota
 - Cormorant Garamond: Christian Thalmann and contributors, SIL Open Font License 1.1, distributed through Fontsource.
 - Inter: Rasmus Andersson and contributors, SIL Open Font License 1.1, distributed through Fontsource.
 - Interface icons: Phosphor Icons, MIT license, through `@phosphor-icons/react`.
-- Ambient and page sounds: original filtered-noise synthesis in `src/book/audio.ts`; no external audio recordings.
+- Music: original, quiet Spanish-guitar-inspired synthesized arpeggios in `src/book/audio.ts`, with soft room reflections and filtered-noise page rustle. No external recording or claim about Weil’s personal listening preferences.
 - Three.js, React, Vite and supporting libraries retain their respective package licenses. Blender is the authoring tool; no Blender executable is distributed with this site.
 
 The reference images establish visual direction. They are not presented as renders of the implemented book. Scenes are artistic interpretations, not claims to reconstruct undocumented biographical events.

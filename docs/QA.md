@@ -104,3 +104,14 @@ The first clean GitHub runner exposed an ordering error: Sites packaging checks 
 Verified https://bhavyaak25.github.io/simone-weil/ in the in-app browser: complete spine-facing book, Enter entrance, childhood, contents jump to chapter 12, reverse turn to chapter 11, raised print and full source dialog, Escape, and illustrated edition onward navigation. Both the default narrow viewport and 1440 × 1000 desktop layout were inspected. No console warnings or errors were recorded during this live pass. Runtime assets and posters loaded under the repository subpath.
 
 This final documentation update changes no runtime code or assets.
+
+## Scoped revision checks — 11 September, evening
+
+- Inspected the generated spine engraving upright in the actual browser, and the photographic front cover at entrance progress 0.43. Captures: `qa/revision-spine-engraving.png`, `qa/revision-cover-portrait.png`.
+- Forward and reverse midpoint frames use identical fixed camera framing. Increased sheet curl fits below the header without a camera swoop; `qa/revision-fixed-turn.png`.
+- Opening click enabled music automatically; mute worked and stayed muted across illustrated/3D switching. The original synthesized nylon-string-style loop has a 34.9-second period, restrained gain and soft room reflections. Agent buffer checks found no clipping; actual speaker listening was not independently assessed. Audio graph cleanup supports React StrictMode reinitialization.
+- Checked “12” in the header/contents/cover and absence of the lower-left motto. The closed-book invitation displays courage, belonging, and independence.
+- Illustrated chapter 2 returned directly to 3D chapter 2 using the visible 3D control. The control also fits the 390 × 844 phone footer; chapter 5 was used for the phone return check.
+- Tree leaves were separated into distinct depths and gear layers given physical clearance. Childhood tree and factory gear browser frames show clean printed surfaces; `qa/revision-factory-surfaces.png`. Affected tree/gear exports and editable source files are rebuilt using the existing pipeline.
+
+Final scoped checks: typecheck, 19 focused tests, all 13 asset validations, production build and four Sites packaging tests passed after the affected exports finished. Runtime browser error/warning log was empty. The latest user request overrides earlier default-off audio records; music now starts on the visitor's opening action. Physical-device and independent listening limitations remain as recorded above.

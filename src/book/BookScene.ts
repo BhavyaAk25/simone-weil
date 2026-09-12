@@ -8,6 +8,7 @@ import { makePaperText } from './paper';
 type Rig = { gltf: GLTF; mixer: THREE.AnimationMixer; action?: THREE.AnimationAction };
 type Options = {
   chapters: Chapter[];
+  initialChapter?: number;
   reducedMotion: boolean;
   onChange: (snapshot: BookSnapshot) => void;
   onRustle: () => void;
@@ -111,17 +112,18 @@ export class BookScene {
       this.sample(this.readingAction, 0);
       this.bookMixer.update(0);
       this.publish({ progress: 0.65 });
-      this.currentRig = await this.loadChapter(0);
+      const initialChapter = this.options.initialChapter ?? 0;
+      this.currentRig = await this.loadChapter(initialChapter);
       if (this.disposed || this.graphicsLost) return;
       this.group.add(this.currentRig.gltf.scene);
       this.currentRig.gltf.scene.visible = false;
       this.setPopup(this.currentRig, 0);
-      this.setText(0);
+      this.setText(initialChapter);
       this.text!.visible = false;
       this.poseEntrance(0);
-      this.publish({ phase: 'closed', progress: 1 });
-      this.prefetch(0);
-      if (this.options.reducedMotion) this.enter(true);
+      this.publish({ phase: 'closed', chapter: initialChapter, progress: 1 });
+      this.prefetch(initialChapter);
+      if (this.options.reducedMotion || this.options.initialChapter !== undefined) this.enter(true);
     } catch (error) {
       if (!this.disposed && !this.graphicsLost) this.publish({ phase: 'error', error: this.errorMessage(error) });
     }
@@ -395,17 +397,17 @@ export class BookScene {
     const aspect = this.camera.aspect;
     const height = this.element.clientHeight || 1000;
     const verticalFit = Math.sqrt(Math.max(1, 850 / height));
-    const turnArc = this.state.phase === 'turning' ? Math.sin(Math.PI * interval(this.turningProgress, 0.24, 0.76)) : 0;
-    const readingDistance = Math.max(8.2 * verticalFit, 5.85 / (2 * Math.tan(THREE.MathUtils.degToRad(16)) * aspect)) * (1 + 0.22 * turnArc);
+    const readingDistance = Math.max(8.2 * verticalFit, 5.85 / (2 * Math.tan(THREE.MathUtils.degToRad(16)) * aspect));
     const closedPosition = new THREE.Vector3(0.25, 2.2, 11.2);
-    const readingPosition = new THREE.Vector3(0.12 + 1.4 * turnArc, 0.53 * readingDistance + 0.65, 0.86 * readingDistance);
+    const readingPosition = new THREE.Vector3(0.12, 0.53 * readingDistance + 0.65, 0.86 * readingDistance);
     const transition = interval(this.entry, 0.44, 0.78);
     this.camera.position.copy(closedPosition).lerp(readingPosition, transition);
     const moving = !this.options.reducedMotion && this.state.phase === 'reading';
-    this.cameraOffset.lerp(moving ? this.pointer : new THREE.Vector2(), 0.035);
+    // Keep the current framing fixed throughout a page turn.
+    if (this.state.phase !== 'turning') this.cameraOffset.lerp(moving ? this.pointer : new THREE.Vector2(), 0.035);
     this.camera.position.x += this.cameraOffset.x * 0.1;
     this.camera.position.y += this.cameraOffset.y * 0.045;
-    this.look.set(0, THREE.MathUtils.lerp(1.65, 0.75 + 0.2 * turnArc, transition), 0);
+    this.look.set(0, THREE.MathUtils.lerp(1.65, 0.75, transition), 0);
     this.camera.lookAt(this.look);
   }
 

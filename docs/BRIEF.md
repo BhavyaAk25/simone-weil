@@ -6,7 +6,7 @@ The visitor first sees a spine-facing special-edition book, centred in a dark wa
 
 Art direction: dark walnut #422A20, tobacco #785039, aged ivory #E8DDC7, antique brass #A78B56, ink #27221E. Tactile paper layers, warm side light, restrained decoration and readable text. The selected reference is `references/dark-walnut.png`. Its specific diorama is inspiration, not a reconstruction to repeat in every chapter.
 
-Navigation: previous/next, horizontal swipe, arrow keys, chapter contents. Paper scenery collapses, page bends/turns, next scene unfolds. Limited camera motion. Desktop writing on paper; portrait-phone writing below canvas. Sound is optional and off until enabled. Provide an illustrated accessible fallback and reduced-motion experience.
+Navigation: previous/next, horizontal swipe, arrow keys, chapter contents. Paper scenery collapses, page bends/turns, next scene unfolds. Limited camera motion. Desktop writing on paper; portrait-phone writing below canvas. Music starts when the visitor opens the book and can be muted immediately with the sound control. Provide an illustrated accessible fallback and reduced-motion experience.
 
 Twelve beats: childhood; education; teaching; power and oppression; factory; Spain; spiritual encounters; war and force; Marseille and attention; rootedness; final writings and death; posthumous legacy.
 
