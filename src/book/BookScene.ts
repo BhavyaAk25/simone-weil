@@ -309,6 +309,15 @@ export class BookScene {
     this.options.onRustle();
   }
 
+  returnToShelf = () => {
+    if (this.disposed || this.graphicsLost || this.state.phase !== 'reading' || this.state.chapter !== 0) return;
+    this.motionStart = 0;
+    this.pointer.set(0, 0);
+    this.cameraOffset.set(0, 0);
+    this.publish({ phase: 'closed', progress: 1, error: undefined });
+    this.poseEntrance(0);
+  };
+
   async goTo(index: number) {
     if (!validDestination(this.state.chapter, index, this.options.chapters.length, this.state.phase !== 'reading')) return;
     this.publish({ phase: 'turning', progress: 0, error: undefined });

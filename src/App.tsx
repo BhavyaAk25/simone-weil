@@ -224,7 +224,9 @@ export function App() {
       </article>
       <footer className="book-footer">
         <nav className="page-navigation" aria-label="Book pages">
-          <button className="round-button" aria-label="Previous chapter" onClick={() => turn(state.chapter - 1)} disabled={busy || state.chapter === 0}><ArrowLeft size={25} weight="light" /></button>
+          {!fallback && state.chapter === 0
+            ? <button className="round-button" aria-label="Return to the closed 3D book" title="Return to the closed book" onClick={() => sceneRef.current?.returnToShelf()} disabled={busy}>3D</button>
+            : <button className="round-button" aria-label="Previous chapter" onClick={() => turn(state.chapter - 1)} disabled={busy || state.chapter === 0}><ArrowLeft size={25} weight="light" /></button>}
           {fallback && <button className="return-3d" onClick={retryGraphics} aria-label="Return to the 3D book">3D</button>}
           <button className="page-count" onClick={() => setPanel('contents')} disabled={busy} aria-label={`Chapter ${state.chapter + 1} of 12. Open contents`}><span>{String(state.chapter + 1).padStart(2, '0')}</span><span className="count-line" /><span>12</span></button>
           <button className="round-button" aria-label="Next chapter" onClick={() => turn(state.chapter + 1)} disabled={busy || state.chapter === chapters.length - 1}><ArrowRight size={25} weight="light" /></button>

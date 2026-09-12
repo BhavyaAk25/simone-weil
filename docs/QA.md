@@ -115,3 +115,11 @@ This final documentation update changes no runtime code or assets.
 - Tree leaves were separated into distinct depths and gear layers given physical clearance. Childhood tree and factory gear browser frames show clean printed surfaces; `qa/revision-factory-surfaces.png`. Affected tree/gear exports and editable source files are rebuilt using the existing pipeline.
 
 Final scoped checks: typecheck, 19 focused tests, all 13 asset validations, production build and four Sites packaging tests passed after the affected exports finished. Runtime browser error/warning log was empty. The latest user request overrides earlier default-off audio records; music now starts on the visitor's opening action. Physical-device and independent listening limitations remain as recorded above.
+
+## First-spread 3D return — 12 September 2026
+
+The first open spread now replaces the disabled left arrow with a circular “3D” control. It returns immediately to the centered, closed spine; later spreads retain the previous-page arrow. The existing illustrated edition control still restores the same chapter in 3D.
+
+Production-preview browser acceptance at 1280 × 720 and 390 × 844: opening enabled sound; Enter on the new circle returned to the closed spine; reopening, forward to chapter 2, and backward to chapter 1 succeeded. The control was disabled during the turn. Phone-layout click return and reduced-motion return/reopen succeeded; mute remained off across reopening. Browser warnings/errors were empty. Phone checks are viewport emulation, not physical-device tests. Capture: `qa/first-spread-3d-return.png`.
+
+Typecheck, all 19 focused tests, all 13 asset validations, production build, and four Sites packaging tests passed. The build retains its existing bundle-size advisory. The prior scoped portrait, audio, tree/gear, and invitation changes were already published successfully by [run 34671007032](https://github.com/BhavyaAk25/simone-weil/actions/runs/34671007032).

@@ -56,3 +56,8 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - The illustrated edition has a visible 3D return beside the page counter; restore the same chapter in 3D.
 - Latest audio preference supersedes the earlier default-off rule: starting the book through a click, tap or Enter starts music; keep a working mute control and respect browser audio restrictions. Do not force playback before a visitor gesture.
 - Fix flickering overlapping tree leaves and factory gears at the mesh surfaces, preserving their composition and the rest of the story.
+
+### First-spread navigation clarification — 12 September 2026
+
+- In the open 3D book, the first spread's left circular control reads “3D” and returns to the closed, spine-facing book. Later spreads keep the previous-page arrow. Return immediately without adding camera choreography; the book can then be opened again.
+- Preserve the illustrated edition's same-chapter 3D return and the visitor's sound preference. This pass does not redesign the header.
