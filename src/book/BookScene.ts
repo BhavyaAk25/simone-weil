@@ -154,6 +154,7 @@ export class BookScene {
     backdrop.colorSpace = THREE.SRGBColorSpace;
     this.backdrop = backdrop;
     this.scene.background = backdrop;
+    this.scene.backgroundIntensity = 0.80;
     this.textures.push(paper, walnut, backdrop);
     this.resize();
   }

@@ -60,3 +60,7 @@ The shared rules and ownership are in [AGENTS.md](AGENTS.md). The rejected initi
 Published to the public repository `BhavyaAk25/simone-weil` and GitHub Pages. Every push to `main` runs type checking, tests, all thirteen asset validations, a production build and packaging checks before deploying `dist/client`. The first successful deployment and live-browser checks are recorded in [QA](docs/QA.md).
 
 No account, backend, visitor API, paid service or custom domain is required. See [CREDITS](CREDITS.md) and the [source register](docs/SOURCES.md) for assets and quotations. Physical-phone performance must be measured on a real device; mobile browser dimensions on a desktop are not a phone benchmark.
+
+### Ornamental header
+
+The approved responsive header uses local transparent WebP artwork and accessible HTML controls. Editable Blender sources and export steps are in [HEADER-ASSETS](docs/HEADER-ASSETS.md); decisions and acceptance evidence are in [HEADER-PLAN](docs/HEADER-PLAN.md) and [HEADER-QA](docs/HEADER-QA.md).

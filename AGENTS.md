@@ -61,3 +61,21 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 - In the open 3D book, the first spread's left circular control reads “3D” and returns to the closed, spine-facing book. Later spreads keep the previous-page arrow. Return immediately without adding camera choreography; the book can then be opened again.
 - Preserve the illustrated edition's same-chapter 3D return and the visitor's sound preference. This pass does not redesign the header.
+
+### Header planning — 12 September 2026
+
+- The user now requests planning a header redesign from `ccb3519c-5037-49c4-a538-390631bf4203.png`: sculpted ivory ribs, arched recesses, coloured glass and calm lettering areas. The current rectangular blurred bar is rejected as generic.
+- This turn authorizes analysis and a plan only. See `docs/HEADER-PLAN.md` for the proposed pipeline, visual gates and unresolved palette choice. Do not treat proposed dimensions or material adaptations as approved.
+- Judge the header over the actual walnut bookshop and both closed/open book states, including a separately composed phone version. Preserve existing book behavior and scope the implementation to the header when authorized.
+
+### Approved header implementation — 12 September 2026
+
+- User approved `docs/references/header-approved.png` and authorized execution with agents. It supersedes the earlier planning-only status: warm ivory sculpture, amber/olive glass with muted teal, mosaic filling the top edge, and branching leaf-shaped glass at both outer edges. No plain filler strips or detached rounded end caps.
+- Focus exclusively on the top header and its responsive functional controls. Preserve the live book, chapter assets, room, audio, page-turn camera and bottom navigation. Generated variations below the header are not new requirements.
+- Main owns application/integration/docs/publishing. Header-art agent owns only header-prefixed assets and Blender script/source plus `docs/HEADER-ASSETS.md`. Header-review agent owns `docs/HEADER-QA.md`; browser ownership requires explicit handoff. Existing book Blender sources remain untouched.
+
+### Header integration correction — 13 September 2026
+
+- The user rejected the first integration's smaller book and weak title typography. Restore the book's visual prominence while keeping header clearance; avoid reserving the full header height inside the desktop canvas.
+- Match the approved reference's darker, richer walnut-library background. This specific backdrop colour correction is authorized in addition to the header. Keep paper/scene lighting and chapter assets unchanged.
+- Header agents saved assets and review notes before hitting usage limits. Main assumes their remaining verification/doc ownership while they are inactive.

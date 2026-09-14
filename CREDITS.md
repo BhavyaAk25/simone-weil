@@ -27,6 +27,8 @@ The source register provides the link, locator, date, and context for each quota
 - Paper and walnut texture maps: generated for this project with OpenAI Image Generation. Exact prompts and processing are recorded in [MATERIALS](docs/MATERIALS.md).
 - Bookshop environment: generated image used only as the distant setting; the interactive book remains 3D geometry and casts real rendered shadows. See [BOOKSHOP-ASSET](docs/BOOKSHOP-ASSET.md).
 - Paris architectural engraving: original generated albedo artwork printed onto the actual folding wall meshes, with modeled roofs and paper edges. See [ARCHITECTURE-ASSET](docs/ARCHITECTURE-ASSET.md).
+- Header ornament: original OpenAI-generated artwork based on the approved design, rendered through a separate Blender silhouette/UV pipeline with baked material relief. Desktop and phone compositions, source files and reproducible scripts are recorded in [HEADER-ASSETS](docs/HEADER-ASSETS.md).
+- Cinzel: Natanael Gama and contributors, SIL Open Font License 1.1, distributed locally through [Fontsource](https://fontsource.org/fonts/cinzel); used for the header title.
 - Cormorant Garamond: Christian Thalmann and contributors, SIL Open Font License 1.1, distributed through Fontsource.
 - Inter: Rasmus Andersson and contributors, SIL Open Font License 1.1, distributed through Fontsource.
 - Interface icons: Phosphor Icons, MIT license, through `@phosphor-icons/react`.

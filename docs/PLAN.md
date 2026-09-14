@@ -24,3 +24,7 @@ The complete book runs in a browser, all twelve spreads can be read in both dire
 ## Scoped follow-up
 
 Implemented the requested fixed-camera page turns, cover photograph/artistic spine, guitar-style music, label cleanup, revised invitation, visible same-chapter 3D return and tree/gear surface separation. See REVISION and QA for details; publication follows the existing checks.
+
+## Approved header and follow-up refinements — 13 September
+
+Implemented independent responsive header component with live HTML lettering and controls, approved amber/olive mosaic and branching ends, locally bundled Cinzel title, restored book prominence and darker library backdrop. Main integrates and publishes; header-art supplied isolated assets; header-review completed desktop/tablet/phone comparison. Verification evidence and remaining device limits are recorded in HEADER-QA.md and QA.md.

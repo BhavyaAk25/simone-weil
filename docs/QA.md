@@ -123,3 +123,18 @@ The first open spread now replaces the disabled left arrow with a circular “3D
 Production-preview browser acceptance at 1280 × 720 and 390 × 844: opening enabled sound; Enter on the new circle returned to the closed spine; reopening, forward to chapter 2, and backward to chapter 1 succeeded. The control was disabled during the turn. Phone-layout click return and reduced-motion return/reopen succeeded; mute remained off across reopening. Browser warnings/errors were empty. Phone checks are viewport emulation, not physical-device tests. Capture: `qa/first-spread-3d-return.png`.
 
 Typecheck, all 19 focused tests, all 13 asset validations, production build, and four Sites packaging tests passed. The build retains its existing bundle-size advisory. The prior scoped portrait, audio, tree/gear, and invitation changes were already published successfully by [run 34671007032](https://github.com/BhavyaAk25/simone-weil/actions/runs/34671007032).
+
+## Header release verification — 13 September 2026
+
+Scope: approved ivory/glass header, Cinzel title, recovered book prominence and 0.80 backdrop intensity. Existing book meshes, camera formulas, story, audio and turn choreography are unchanged.
+
+- Actual in-app Chromium browser: 1672×941 desktop, 1280×720 short desktop, 390×844 and 320×740 portrait, 601×900 tablet-width layout, 844×390 landscape. These are viewport checks on this Mac, not physical-phone benchmarks.
+- Source `references/header-approved.png` and actual `qa/header-open-final.png` were viewed together at1672×941. The independent header reviewer found no P0/P1/P2 mismatch. The book is approximately1009px wide versus1040px in the mock, with33px clearance above childhood chimneys. Native screenshot capture softens both HTML and image content; supersampling does not create source detail.
+- Entrance held at0.43, forward/back turns held at0.54 on1280×720: header does not obscure the cover or turning sheet. Files: `qa/header-entrance.png`, `header-turn.png`, `header-turn-back.png`.
+- Contents opens by keyboard; Escape restores trigger focus. Chapter5 jump succeeds. All12 chapter counters traversed forward/back in reduced-motion mode. Header Contents and page buttons disable during held turns. Decoration click does not open the closed book.
+- Real header asset failure tested by temporarily moving the local desktop WebP and reloading: quiet ivory fallback, legible live text and working About dialog. Asset restored before build.
+- Simulated graphics loss exposes recovery and illustrated edition; reading text and header remain accessible. `qa/header-illustrated.png` records layout. Reduced-motion control immediately enters reading.
+- Portrait and tablet lettering stays inside plaques. Landscape has no horizontal overflow; short landscape uses the existing scrollable reading layout and fixed footer, so the full book/text is not simultaneously visible.
+- Typecheck PASS;19 transition/content/audio tests PASS;13 GLB validations PASS; production build PASS;4 Sites tests PASS. Existing large-JS-chunk advisory remains. No new physical-device performance or200%browser-zoom measurement is claimed.
+
+Additional captures: `qa/header-detail.png`, `header-phone.png`, `header-tablet.png`, `header-landscape.png`, `header-factory.png`. Earlier `header-open.png` and `header-open-revised.png` are intermediate iterations, not final acceptance.

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, List, SpeakerHigh, SpeakerSlash, X, ArrowUpRight, ArrowClockwise } from '@phosphor-icons/react';
+import { ArrowLeft, ArrowRight, BookOpen, SpeakerHigh, SpeakerSlash, X, ArrowUpRight, ArrowClockwise } from '@phosphor-icons/react';
+import { BookHeader } from './BookHeader';
 import { chapters } from './content/chapters';
 import { BookScene } from './book/BookScene';
 import { BookAudio } from './book/audio';
@@ -164,16 +165,7 @@ export function App() {
       <output aria-label="Rendering measurements">{metrics}</output>
     </aside>}
     <a className="skip-link" href="#chapter-reading" onClick={() => { if (!reading) illustrated(); }}>Skip to the story</a>
-    <header className="topbar">
-      <button className="wordmark" onClick={() => setPanel('edition')} aria-label="About The Life of Simone Weil">
-        <span>SIMONE WEIL</span><small>A LIFE IN 12 CHAPTERS</small>
-      </button>
-      <div className="topbar-right">
-        <span className="lifespan">1909 — 1943</span>
-        {reading && <button className="text-button contents-button" onClick={() => setPanel('contents')} disabled={busy}><List size={20} weight="light" /><span>Contents</span></button>}
-        {!reading && <button className="text-button edition-button" onClick={() => setPanel('edition')}>About this edition</button>}
-      </div>
-    </header>
+    <BookHeader reading={reading} busy={busy} onAbout={() => setPanel('edition')} onContents={() => setPanel('contents')} />
 
     {!fallback && <div className="book-stage" ref={stageRef}
       onPointerMove={event => {

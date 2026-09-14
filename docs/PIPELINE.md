@@ -75,3 +75,7 @@ The coordinate, node, material and animation names above are now frozen. `story_
 ## Scoped revision — 11 September
 
 The front cover now includes the photographic portrait and the spine an upright generated engraved adaptation, each with a separate embedded texture/material. The cover label uses 12. The page-turn camera arc is removed at the user's request. A stronger arc-length curl (2.6 radians at midpoint) keeps the leaf inside the fixed reading view; its flat endpoints and clip contract stay the same. The old description of camera pullback above records the earlier gate, not current behavior.
+
+## Separate header artwork pipeline — 13 September
+
+Header sources live in `assets/source/header/`, with `scripts/blender/build_header.py` and `compress_header.py`. This is a UV-textured silhouette render with baked relief, separate from the actual 3D book mesh/animation pipeline. Runtime desktop/phone WebP files have transparent lower edges and contain no interface lettering. See HEADER-ASSETS.md for provenance, sizes and reproduction.
