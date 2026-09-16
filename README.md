@@ -68,3 +68,5 @@ The approved responsive header uses local transparent WebP artwork and accessibl
 ### ChatGPT Sites hosting
 
 The Sites project is registered in `.openai/hosting.json`. For root-domain hosting, build with `SITE_BASE_PATH=/ npm run build`; the default remains `/simone-weil/` for GitHub Pages. Run `npm run test:sites` before packaging. The Sites connector handles source/version publication and viewer access; never store its temporary credentials in the repository.
+
+Editable Blender sources continue to use the public GitHub LFS endpoint specified in `.lfsconfig`, including when cloning the Sites source mirror. Runtime GLB and WebP assets are included directly in the deployed site.
