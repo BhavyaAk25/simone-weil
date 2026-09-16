@@ -64,3 +64,7 @@ No account, backend, visitor API, paid service or custom domain is required. See
 ### Ornamental header
 
 The approved responsive header uses local transparent WebP artwork and accessible HTML controls. Editable Blender sources and export steps are in [HEADER-ASSETS](docs/HEADER-ASSETS.md); decisions and acceptance evidence are in [HEADER-PLAN](docs/HEADER-PLAN.md) and [HEADER-QA](docs/HEADER-QA.md).
+
+### ChatGPT Sites hosting
+
+The Sites project is registered in `.openai/hosting.json`. For root-domain hosting, build with `SITE_BASE_PATH=/ npm run build`; the default remains `/simone-weil/` for GitHub Pages. Run `npm run test:sites` before packaging. The Sites connector handles source/version publication and viewer access; never store its temporary credentials in the repository.
