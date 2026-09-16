@@ -79,3 +79,13 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - The user rejected the first integration's smaller book and weak title typography. Restore the book's visual prominence while keeping header clearance; avoid reserving the full header height inside the desktop canvas.
 - Match the approved reference's darker, richer walnut-library background. This specific backdrop colour correction is authorized in addition to the header. Keep paper/scene lighting and chapter assets unchanged.
 - Header agents saved assets and review notes before hitting usage limits. Main assumes their remaining verification/doc ownership while they are inactive.
+
+### Sites-only release and reader corrections — 16 September 2026
+
+- Publish the website publicly on ChatGPT Sites. Disable GitHub Pages; retain GitHub only for source and Blender LFS storage. The root-domain Vite base is now the default. GitHub Actions should verify, not deploy.
+- Illustrated reading uses warm aged ivory with dark espresso text and refined neutral poster grounds. Remove the crude brown plank renders. Increase book prominence modestly, checking header and turn clearance.
+- About must explain who Simone Weil was in a clear paragraph. Remove “Made with curiosity, and a little attention.”
+- Review all12 original chapter paragraphs for accessible language, connected chronology and a balanced account of her life. Use digits for numeric quantities (especially34) and no em dashes in editorial copy. Preserve verified quotations and source labels.
+- Prepare3 gentle piano audition samples for user choice. Do not select or replace the active soundtrack before the user chooses.
+
+- 16 September handoff: content revisions completed; illustrated-art and piano agents saved work before hitting usage limits. Main resumes their unfinished rendering, attribution, verification and integration while they are inactive.

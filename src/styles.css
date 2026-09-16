@@ -83,16 +83,21 @@ a { color: inherit; text-underline-offset: 4px; }
 .edition-dialog > p:not(.eyebrow):not(.edition-credit) { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1.4; color: #66503a; }
 .edition-actions { margin: 30px 0; }
 .edition-credit { font-size: 10px; line-height: 1.8; color: #715c43; padding-top: 15px; }
-.is-illustrated { padding: 135px 5vw 145px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 5vw; align-items: center; min-height: 100svh; }
+.is-illustrated { padding: 135px 3.5vw 125px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 4vw; align-items: center; min-height: 100svh; }
 .illustrated-stage { position: relative; }
 .illustrated-stage img { display: block; width: 100%; height: auto; mix-blend-mode: normal; }
 .illustrated-label { display: block; margin-top: 15px; text-align: center; letter-spacing: .2em; font-size: 8px; color: var(--muted); }
-.is-illustrated .chapter-reading { position: static; color: var(--ivory); max-width: 500px; }
+.experience.is-illustrated { background: #eee6d7; color: #392f25; --muted: #715c43; --brass: #8a693d; }
+.is-illustrated .chapter-reading { position: static; color: #392f25; max-width: 530px; }
 .is-illustrated .chapter-reading h2 { font-size: 46px; }
-.is-illustrated .chapter-paragraph { color: #cabb9f; }
-.is-illustrated .chapter-reading blockquote p { color: #cfb687; }
-.is-illustrated .chapter-kicker, .is-illustrated .source-link { color: #bfa783; }
-.is-illustrated .chapter-reading cite { color: #b6a082; }
+.is-illustrated .chapter-paragraph { color: #493e32; }
+.is-illustrated .chapter-reading blockquote p { color: #705333; }
+.is-illustrated .chapter-kicker, .is-illustrated .source-link { color: #725b3e; }
+.is-illustrated .chapter-reading cite { color: #725b3e; }
+.experience.is-illustrated .book-footer { color: #493e32; background: #eee6d7f5; border-top: 1px solid #9f84512b; }
+.is-illustrated .tool-button { color: #725b3e; }
+.is-illustrated .tool-button:hover { color: #33291e; }
+.is-illustrated .page-count > span:last-child { color: #725b3e; }
 @keyframes arrive { from { opacity: 0; transform: translate(-50%,10px); } to { opacity: 1; transform: translate(-50%,0); } }
 @media (min-width:1100px) and (max-height:780px) {
   .invitation { bottom: 4vh; } .invitation-note { font-size: 15px; margin-top: 8px; } .book-footer { height: 80px; }

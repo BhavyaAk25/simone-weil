@@ -1,6 +1,6 @@
 # The Life of Simone Weil
 
-[Open the published book](https://bhavyaak25.github.io/simone-weil/) · [Source repository](https://github.com/BhavyaAk25/simone-weil)
+[Open the published book](https://simone-weil.bhavyaak.chatgpt.site) · [Source repository](https://github.com/BhavyaAk25/simone-weil)
 
 A twelve-chapter interactive biography built as a real 3D pop-up book. Blender authors the leather book, paper scenes and baked hinges; Three.js renders them in a Vite, React and TypeScript website. Each spread pairs original English prose with a short attributed project translation of Simone Weil.
 
@@ -13,7 +13,7 @@ npm ci
 npm run dev -- --port 4173
 ```
 
-Open `http://localhost:4173/simone-weil/`. Click the spine or the opening button, tap, or press Enter. Navigate with the arrows, horizontal swipes or the contents. Music starts with the opening click, tap or Enter and can be muted. A visible 3D control returns from the illustrated edition to the same chapter. Reduced-motion preferences bypass the entrance and page animations.
+Open `http://localhost:4173/`. Click the spine or the opening button, tap, or press Enter. Navigate with the arrows, horizontal swipes or the contents. Music starts with the opening click, tap or Enter and can be muted. A visible 3D control returns from the illustrated edition to the same chapter. Reduced-motion preferences bypass the entrance and page animations.
 
 `?read` opens the illustrated edition directly. In development only, `?inspect` exposes a frame-position control and rendering measurements for inspecting the real entrance and turn sequence. Set progress to `0`, start an animation, then advance to a value between `0` and `1`. Uncheck the frame hold to run normally. These tools are excluded from the production interface.
 
@@ -30,7 +30,7 @@ npm run preview -- --port 4173
 
 During the first two-spread milestone use `npm run validate:assets -- --milestone`. The release check requires all twelve chapter GLBs, source Blender files, and fallback posters. The validator samples binary geometry through animation poses; browser checks are still required to detect visual discontinuities, readability and input failures. See [QA](docs/QA.md) for observed results and remaining checks.
 
-The static output is **`dist/client`**, with base path **`/simone-weil/`**. The build also preserves the starter's optional Sites artifacts under `dist/server` and `dist/.openai`.
+The static output is **`dist/client`**, with base path **`/`**. The build also preserves the starter's optional Sites artifacts under `dist/server` and `dist/.openai`.
 
 ## Blender source and exports
 
@@ -57,7 +57,7 @@ The shared rules and ownership are in [AGENTS.md](AGENTS.md). The rejected initi
 
 ## Publication
 
-Published to the public repository `BhavyaAk25/simone-weil` and GitHub Pages. Every push to `main` runs type checking, tests, all thirteen asset validations, a production build and packaging checks before deploying `dist/client`. The first successful deployment and live-browser checks are recorded in [QA](docs/QA.md).
+The website is hosted on ChatGPT Sites. GitHub retains the source repository and Blender LFS files only; its workflow runs checks without deploying a website. Sites publication uses the saved project in `.openai/hosting.json`. Verification is recorded in [QA](docs/QA.md).
 
 No account, backend, visitor API, paid service or custom domain is required. See [CREDITS](CREDITS.md) and the [source register](docs/SOURCES.md) for assets and quotations. Physical-phone performance must be measured on a real device; mobile browser dimensions on a desktop are not a phone benchmark.
 
@@ -67,6 +67,6 @@ The approved responsive header uses local transparent WebP artwork and accessibl
 
 ### ChatGPT Sites hosting
 
-The Sites project is registered in `.openai/hosting.json`. For root-domain hosting, build with `SITE_BASE_PATH=/ npm run build`; the default remains `/simone-weil/` for GitHub Pages. Run `npm run test:sites` before packaging. The Sites connector handles source/version publication and viewer access; never store its temporary credentials in the repository.
+The Sites project is registered in `.openai/hosting.json`. The default build uses the root-domain `/` base. `SITE_BASE_PATH` is available only for an explicitly requested alternate hosting path. Run `npm run test:sites` before packaging. The Sites connector handles source/version publication and viewer access; never store its temporary credentials in the repository.
 
 Editable Blender sources continue to use the public GitHub LFS endpoint specified in `.lfsconfig`, including when cloning the Sites source mirror. Runtime GLB and WebP assets are included directly in the deployed site.

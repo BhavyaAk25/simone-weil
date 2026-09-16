@@ -60,7 +60,7 @@ export function makePaperText(chapter: Chapter, renderer: THREE.WebGLRenderer) {
   y += 22;
   ctx.font = '400 34px Inter';
   ctx.fillStyle = '#8c7658';
-  ctx.fillText('— SIMONE WEIL', left, y);
+  ctx.fillText('SIMONE WEIL', left, y);
 
   ctx.font = '400 32px Inter';
   ctx.textAlign = 'center';

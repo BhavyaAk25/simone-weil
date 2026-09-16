@@ -26,7 +26,7 @@ export function BookHeader({ reading, busy, onAbout, onContents }: Props) {
         <span>SIMONE WEIL</span><small>A LIFE IN 12 CHAPTERS</small>
       </button>
       <div className="book-header-actions">
-        <span className="book-header-dates">1909 — 1943</span>
+        <span className="book-header-dates">1909–1943</span>
         {reading
           ? <button className="book-header-link" onClick={onContents} disabled={busy} aria-label="Contents">
             <List size={24} weight="light" /><span>Contents</span>

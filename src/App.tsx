@@ -246,16 +246,16 @@ export function App() {
         </>}
         {panel === 'reading' && <div className="reading-dialog"><p className="eyebrow">CHAPTER {String(chapter.id).padStart(2, '0')} / 12</p><ChapterWords chapter={chapter} sources /></div>}
         {panel === 'edition' && <div className="edition-dialog">
-          <p className="eyebrow">ABOUT THIS EDITION</p><h2>A life, in paper.</h2>
-          <p>This independent biography follows Simone Weil’s life and the questions she left us: how to see another person, how to live with justice, and what it means to belong.</p>
-          <p>Its paper scenes are artistic interpretations. The words beneath each scene connect her experiences to her ideas; the quotations are short translations made for this edition from verified French texts.</p>
+          <p className="eyebrow">ABOUT THIS EDITION</p><h2>Who was Simone Weil?</h2>
+          <p>Simone Weil (1909–1943) was a French philosopher, teacher, and writer who wanted to understand how people could live with dignity. She supported workers, took factory jobs, and later helped the Free French in London. Her encounters with poverty, war, and Christianity shaped her writing about justice, attention, and belonging. She died at 34, leaving ideas that still ask us to notice people whose suffering is easily ignored.</p>
+          <p>This book’s paper scenes are artistic interpretations. The words beneath each scene connect her experiences to her ideas; the quotations are short translations made for this edition from verified French texts.</p>
           <p>Open any chapter’s reading view to find its quotation, original work, and source. Historical context draws on the <a href="https://plato.stanford.edu/entries/simone-weil/" target="_blank" rel="noreferrer">Stanford Encyclopedia of Philosophy</a> and the <a href="https://simoneweilsociety.org/about" target="_blank" rel="noreferrer">American Weil Society</a>.</p>
           <label className="motion-setting"><input type="checkbox" checked={reduced} onChange={event => {
             setReduced(event.target.checked);
             try { localStorage.setItem('simone-weil-reduced-motion', String(event.target.checked)); } catch { /* The setting still works when storage is unavailable. */ }
           }} /> Reduce motion</label>
           <div className="edition-actions"><button className="solid-button" onClick={fallback ? () => { setPanel(null); retryGraphics(); } : illustrated}>{fallback ? 'Return to the 3D book' : 'Read the illustrated edition'}<ArrowRight size={19} /></button></div>
-          <p className="edition-credit">An independent project by Bhavya Khimavat.<br />Made with curiosity, and a little attention.</p>
+          <p className="edition-credit">An independent project by Bhavya Khimavat.</p>
         </div>}
       </div>
     </dialog>

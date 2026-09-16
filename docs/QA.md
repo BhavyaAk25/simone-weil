@@ -138,3 +138,12 @@ Scope: approved ivory/glass header, Cinzel title, recovered book prominence and 
 - Typecheck PASS;19 transition/content/audio tests PASS;13 GLB validations PASS; production build PASS;4 Sites tests PASS. Existing large-JS-chunk advisory remains. No new physical-device performance or200%browser-zoom measurement is claimed.
 
 Additional captures: `qa/header-detail.png`, `header-phone.png`, `header-tablet.png`, `header-landscape.png`, `header-factory.png`. Earlier `header-open.png` and `header-open-revised.png` are intermediate iterations, not final acceptance.
+
+## Reader corrections and Sites release, 16 September 2026
+
+- Re-rendered all 12 illustrated posters from existing Blender chapter sources at 1600 × 1112, replacing the brown plank ground with neutral warm limestone. Actual browser chapter 4 checked against the supplied rejected example: dark legible type on ivory, neutral poster, larger image. See `qa/september16-illustrated.png`.
+- Enlarged the live reading book about 4.5 percent. At 1440 × 900 the childhood chimneys clear the header; sheet-turn frame 0.54 stays below it with fixed framing (`qa/september16-turn.png`). Opening via click succeeded and enabled sound. Traversed counters 1–12 and 12–1 through the actual UI with reduced motion; no console warnings/errors. This pass does not claim a new full animation or physical-device performance benchmark.
+- About title and explanatory biography inspected in the actual dialog; the requested closing motto is absent. All 12 original paragraphs were revised together, with explicit narrative links, digits for quantities, age 34, and no em dashes. Exact quotation wording and sources remain unchanged. Live childhood text fits its paper panel.
+- Illustrated phone layout checked at 390 × 844: no horizontal overflow (document width and scroll width both 390), dark text, ivory footer, visible previous/3D/next and reading/sound controls. `qa/september16-phone.png`. Viewport emulation on this Mac, not a physical phone.
+- Typecheck, 19 focused tests, 13 asset validations, production build and 4 Sites packaging tests passed. Existing bundle-size advisory remains. The Sites build uses root-relative base and retains the worker and hosting metadata. GitHub workflow now verifies only.
+- 3 sampled-piano auditions prepared separately. No current soundtrack replacement. Signal checks show no clipping; no independent speaker-listening or user preference approval is claimed. See `MUSIC-OPTIONS.md`.

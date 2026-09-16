@@ -11,7 +11,7 @@ export const chapters: Chapter[] = [
     period: '1909–1925',
     place: 'Paris',
     idea: 'Truth',
-    paragraph: 'In a comfortable Paris home, Simone and her brother André grow up among books and difficult questions. Born in 1909 into a secular Jewish family, she measures herself painfully against his mathematical gifts. Yet she comes to believe that truth is open to anyone willing to attend to it. Curiosity becomes a demanding way of life.',
+    paragraph: 'Born in Paris in 1909, Simone Weil grows up in a comfortable, secular Jewish family. Her brother André excels at mathematics, and she worries that she cannot match him. Yet she comes to believe that anyone can seek truth through patient attention. This conviction will guide her from books and classrooms into the lives of people whose suffering is often ignored.',
     quote: {
       text: 'By truth I also meant beauty, virtue, and every good.',
       work: 'Spiritual Autobiography',
@@ -30,7 +30,7 @@ export const chapters: Chapter[] = [
     period: '1925–1931',
     place: 'Paris',
     idea: 'Learning',
-    paragraph: 'At school, philosophy offers Simone a discipline for looking closely. She studies with Alain, enters the École normale supérieure, and writes about Descartes. Achievement matters less to her than learning to question her own judgments. Years later, she will describe study as practice in attention: making room for something beyond the answers we already possess.',
+    paragraph: 'That search for truth leads Simone to philosophy. She studies with the teacher Alain, enters the École normale supérieure in 1928, and writes about Descartes. She learns to examine ideas carefully, including her own. Later, she will explain why study matters beyond examinations: it trains us to look closely, admit uncertainty, and keep learning instead of rushing to an answer.',
     quote: {
       text: 'The intelligence can only be led by desire.',
       work: 'On the Right Use of School Studies',
@@ -49,7 +49,7 @@ export const chapters: Chapter[] = [
     period: '1931–1934',
     place: 'Le Puy · Auxerre · Roanne',
     idea: 'Solidarity',
-    paragraph: 'Teaching brings Simone into provincial classrooms, but her questions travel into the streets. She supports workers, joins meetings, and teaches beyond her official lessons. What can philosophy mean to someone without enough money or power? Her commitment is intense, sometimes abrasive. She wants thought to answer to ordinary lives, including lives very different from her own.',
+    paragraph: 'In 1931, Simone becomes a philosophy teacher. She also teaches workers, supports unemployed people, and joins local campaigns. The questions she studied now meet people struggling to earn a living. For her, philosophy must help us understand how others actually live. Her fierce commitment can make her difficult company, but she refuses to keep thought separate from action.',
     quote: {
       text: 'The reality of life is not sensation, but activity.',
       work: 'Letter to a Student',
@@ -68,7 +68,7 @@ export const chapters: Chapter[] = [
     period: '1932–1934',
     place: 'Germany · France',
     idea: 'Freedom',
-    paragraph: 'A journey to Germany sharpens her alarm at the rise of Nazism. She also questions the promises of revolution. Changing rulers, she argues, cannot free people if the machinery of obedience survives. In her study of oppression, power becomes a restless competition that traps those who command as well as those who must obey.',
+    paragraph: 'During these teaching years, a visit to Germany in 1932 brings Simone face to face with the rise of Nazism. She also questions revolutionary movements on the left. Replacing a ruler, she argues, does not guarantee freedom. Workers need a say in their work, not simply new people giving orders. She begins asking how power itself can be changed.',
     quote: {
       text: 'Thus all power is unstable.',
       work: 'Reflections on Liberty and Social Oppression',
@@ -87,7 +87,7 @@ export const chapters: Chapter[] = [
     period: '1934–1935',
     place: 'Paris',
     idea: 'Labor',
-    paragraph: 'Simone takes leave from teaching and works in factories. Orders, speed, and exhaustion narrow her world to the next task. The experience unsettles her confidence in resistance: humiliation can produce submission instead. She records what the machinery asks of a body and a mind, while recognizing a freedom many colleagues lack—the possibility of leaving.',
+    paragraph: 'To test these ideas against daily life, Simone takes leave from teaching and enters factory work in 1934. Repetitive tasks, demanding supervisors, and exhaustion leave little room to think. She discovers that humiliation can silence people rather than make them rebel. Her notebooks record that experience. Unlike many colleagues, however, she has the option of returning to another life.',
     quote: {
       text: 'To think is to go more slowly.',
       work: 'Letter to a Student',
@@ -106,7 +106,7 @@ export const chapters: Chapter[] = [
     period: '1936',
     place: 'Barcelona · Aragon',
     idea: 'Conscience',
-    paragraph: 'Despite her pacifism, Simone joins an anarchist unit in the Spanish Civil War. A severe accidental burn ends her brief service. What remains is a troubling memory of comrades who could treat killing lightly. Writing later to Georges Bernanos, she refuses the comfort of imagining that a just cause makes everyone who serves it just.',
+    paragraph: 'Her wish to stand beside people facing injustice next takes Simone to Spain. In 1936, despite her opposition to war, she joins an anarchist unit fighting Franco’s forces. An accidental burn ends her brief service. She remains disturbed by the casual cruelty of some comrades. Supporting their cause, she concludes, cannot excuse ignoring the suffering they inflict on others.',
     quote: {
       text: 'One leaves as a volunteer, with ideas of sacrifice…',
       work: 'Letter to Georges Bernanos',
@@ -125,7 +125,7 @@ export const chapters: Chapter[] = [
     period: '1935–1938',
     place: 'Portugal · Assisi · Solesmes',
     idea: 'Grace',
-    paragraph: 'A procession in Portugal, a chapel in Assisi, and the chanting at Solesmes open unexpected doors. Simone later describes encounters with Christ, including one while reciting a poem by George Herbert. Her spiritual life deepens without resolving every doubt. Drawn toward Christianity, she keeps questioning the Church and the boundaries it places around truth.',
+    paragraph: 'Alongside these political struggles, Simone’s spiritual life is changing. A Portuguese procession in 1935, prayer in Assisi in 1937, and chanting at Solesmes in 1938 draw her toward Christianity. She later describes feeling Christ’s presence while reciting a poem. Faith offers a new way to understand suffering, although her questions about the Church prevent an easy sense of belonging.',
     quote: {
       text: 'Christ himself descended and seized me.',
       work: 'Spiritual Autobiography',
@@ -144,7 +144,7 @@ export const chapters: Chapter[] = [
     period: '1939–1940',
     place: 'Paris · Marseille',
     idea: 'Force',
-    paragraph: 'War returns to Europe. Simone abandons her earlier pacifism and, as German forces advance, leaves Paris with her family. Reading Homer, she finds a language for what violence does to people. The Iliad becomes a mirror: force can turn a living person into an object, while its apparent masters never fully escape its reach.',
+    paragraph: 'When war returns to Europe, Simone comes to believe that Nazi aggression must be resisted. She leaves Paris with her family as German forces advance in 1940. Reading Homer’s Iliad, she connects ancient warfare with the violence around her. Force, she argues, makes people seem like objects to be used or destroyed. Even those who wield it become its prisoners.',
     quote: {
       text: 'Force turns anyone subjected to it into a thing.',
       work: 'The Iliad, or the Poem of Force',
@@ -163,7 +163,7 @@ export const chapters: Chapter[] = [
     period: '1940–1942',
     place: 'Marseille · Ardèche',
     idea: 'Attention',
-    paragraph: 'In Marseille, conversations, letters, and notebooks gather around an exacting idea: attention. Simone works in the grape harvest and exchanges thoughts with the priest Joseph-Marie Perrin and the writer Gustave Thibon. To attend to another person is to loosen the grip of one’s own concerns. In her religious thinking, that difficult openness becomes a form of prayer.',
+    paragraph: 'Settling in Marseille, Simone continues writing and later works in the grape harvest. Conversations with a priest, Joseph-Marie Perrin, and a writer, Gustave Thibon, deepen her thinking about attention. Against a world that reduces people to objects, she asks us to notice each person’s suffering without putting ourselves at the center. In her religious writing, such attention becomes prayer.',
     quote: {
       text: 'Absolutely unmixed attention is prayer.',
       work: 'Gravity and Grace',
@@ -182,7 +182,7 @@ export const chapters: Chapter[] = [
     period: '1942–1943',
     place: 'New York · London',
     idea: 'Belonging',
-    paragraph: 'Leaving France takes her through New York to London, where she works for the Free French. She imagines how a damaged society might be rebuilt. People need food and shelter, but also responsibility, truth, and ties to a shared past. The Need for Roots asks what we owe one another before asking what we can claim.',
+    paragraph: 'In 1942, Simone leaves France with her parents for New York, then moves to London to work for the Free French resistance movement. She turns from the damage of war to the question of rebuilding. In The Need for Roots, she argues that people need meaningful work, community, and a shared past, alongside food and shelter. Belonging carries responsibilities toward others.',
     quote: {
       text: 'Every human being needs multiple roots.',
       work: 'The Need for Roots',
@@ -201,7 +201,7 @@ export const chapters: Chapter[] = [
     period: '1943',
     place: 'London · Ashford',
     idea: 'Obligation',
-    paragraph: 'The pages keep accumulating, but her health fails. Tuberculosis and severe undernourishment bring her life to an end in Ashford on 24 August 1943, aged thirty-four. The reasons she ate so little remain debated. Her final writings leave urgent questions about justice and obligation, alongside projects she will never finish and arguments she cannot revise.',
+    paragraph: 'While working on these proposals in London, Simone becomes seriously ill. Tuberculosis and severe undernourishment lead to her death in Ashford on 24 August 1943, aged 34. Why she ate so little remains debated. Her life ends with manuscripts unfinished, but her central concern is clear: no person’s suffering should be dismissed because they lack money, status, or power.',
     quote: {
       text: 'There is something sacred in every human being.',
       work: 'Human Personality',
@@ -220,7 +220,7 @@ export const chapters: Chapter[] = [
     period: '1947 onward',
     place: 'An unfinished conversation',
     idea: 'The real',
-    paragraph: 'After her death, friends and editors turn manuscripts into books. Readers encounter a thinker of unusual courage and troubling severity, including hostile judgments about Judaism. Her work invites argument as much as admiration. These pages end with a practice she kept returning to: giving the world, and the people within it, our undivided attention.',
+    paragraph: 'From 1947, friends and editors bring Simone’s unpublished manuscripts to readers as books. Her courage lies in testing ideas against experience, from the classroom to the factory and exile. Her harsh judgments about Judaism also demand criticism. She leaves us no simple example to imitate, but a lasting challenge: look carefully at other people, and take responsibility for what you see.',
     quote: {
       text: 'Beauty is something to which we can pay attention.',
       work: 'Gravity and Grace',
