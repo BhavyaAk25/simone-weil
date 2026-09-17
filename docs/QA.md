@@ -147,3 +147,11 @@ Additional captures: `qa/header-detail.png`, `header-phone.png`, `header-tablet.
 - Illustrated phone layout checked at 390 × 844: no horizontal overflow (document width and scroll width both 390), dark text, ivory footer, visible previous/3D/next and reading/sound controls. `qa/september16-phone.png`. Viewport emulation on this Mac, not a physical phone.
 - Typecheck, 19 focused tests, 13 asset validations, production build and 4 Sites packaging tests passed. Existing bundle-size advisory remains. The Sites build uses root-relative base and retains the worker and hosting metadata. GitHub workflow now verifies only.
 - 3 sampled-piano auditions prepared separately. No current soundtrack replacement. Signal checks show no clipping; no independent speaker-listening or user preference approval is claimed. See `MUSIC-OPTIONS.md`.
+
+## Additional book scale and guitar auditions, 17 September 2026
+
+The reading-distance formula changes from 7.85/5.6 to 7.45/5.3, approximately 5 percent larger. Browser opening and forward/backward page turns succeeded at 1280 × 720; both directions held at frame 0.54 clear the header and preserve fixed camera framing. Childhood buildings also clear the header. Capture: `qa/september17-larger-turn.png`. The 1440 × 900 framing was inspected before interruption; the current short-desktop verification confirms the settled change. No geometry, story, header or active soundtrack change. All 19 focused tests, typecheck and 13 asset checks passed after the camera adjustment.
+
+Three new guitar auditions use a recorded nylon-string instrument with fewer notes, softened transients, stable harmony and lower levels than the rejected piano choices. No clipping in the rendered samples. User listening and selection remain pending; no independent speaker-listening approval claimed.
+
+Portrait 390 × 844 checked in the browser: header, book, reading text and controls visible; no console errors. Retained the prior 5.6 horizontal fit in portrait aspect ratios to preserve page-edge clearance while enlarging desktop framing. This is viewport emulation, not a physical-phone performance test. Production build and all 4 Sites worker tests passed.

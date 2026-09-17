@@ -40,3 +40,5 @@ The reference images establish visual direction. They are not presented as rende
 Font and icon license notices are included in `public/licenses/`. Blender cover lettering uses the macOS Baskerville typeface converted to mesh outlines; the font software is not redistributed.
 
 Piano auditions (pending selection): original short compositions rendered with Salamander Grand Piano samples by Alexander Holm, CC BY 3.0. Samples are pitch-shifted, equalized, trimmed and mixed with soft room reflections. See [audio attribution](scripts/audio/LICENSE.md). These are choices for this edition, not documented preferences of Simone Weil. The current website soundtrack is unchanged.
+
+Guitar auditions (pending selection): FreePats Spanish classical guitar by Roberto, version 2019-06-18, CC0 1.0. Original sparse arrangements with softened attacks, filtering, room resonance and fades. [Source and licensing](https://freepats.zenvoid.org/Guitar/acoustic-guitar.html); bundled notice in `public/audio/guitar-previews/LICENSE.md`.

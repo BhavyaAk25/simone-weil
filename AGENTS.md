@@ -89,3 +89,8 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Prepare3 gentle piano audition samples for user choice. Do not select or replace the active soundtrack before the user chooses.
 
 - 16 September handoff: content revisions completed; illustrated-art and piano agents saved work before hitting usage limits. Main resumes their unfinished rendering, attribution, verification and integration while they are inactive.
+
+### Softer guitar and book size follow-up, 16 September 2026
+
+- The user rejected the piano auditions as harsh, with overly obvious note/tone changes. Prepare guitar alternatives with rounded attacks, sparse low-register notes, stable harmony and a quiet sustained background. Do not confuse lower volume alone with a calmer arrangement. Present choices before replacing the soundtrack.
+- Enlarge the live open book a little further (about 5 percent), retaining header clearance and fixed page-turn framing. Limit this pass to these 2 requests.

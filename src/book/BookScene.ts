@@ -407,7 +407,8 @@ export class BookScene {
     const aspect = this.camera.aspect;
     const height = this.element.clientHeight || 1000;
     const verticalFit = Math.sqrt(Math.max(1, 850 / height));
-    const readingDistance = Math.max(7.85 * verticalFit, 5.6 / (2 * Math.tan(THREE.MathUtils.degToRad(16)) * aspect));
+    const horizontalFit = aspect < 1 ? 5.6 : 5.3;
+    const readingDistance = Math.max(7.45 * verticalFit, horizontalFit / (2 * Math.tan(THREE.MathUtils.degToRad(16)) * aspect));
     const closedPosition = new THREE.Vector3(0.25, 2.2, 11.2);
     const readingPosition = new THREE.Vector3(0.12, 0.53 * readingDistance + 0.65, 0.86 * readingDistance);
     const transition = interval(this.entry, 0.44, 0.78);
