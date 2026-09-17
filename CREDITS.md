@@ -32,13 +32,13 @@ The source register provides the link, locator, date, and context for each quota
 - Cormorant Garamond: Christian Thalmann and contributors, SIL Open Font License 1.1, distributed through Fontsource.
 - Inter: Rasmus Andersson and contributors, SIL Open Font License 1.1, distributed through Fontsource.
 - Interface icons: Phosphor Icons, MIT license, through `@phosphor-icons/react`.
-- Music: original, quiet Spanish-guitar-inspired synthesized arpeggios in `src/book/audio.ts`, with soft room reflections and filtered-noise page rustle. No external recording or claim about Weil’s personal listening preferences.
+- Selected soundtrack: **“Evening” by Kevin MacLeod** (incompetech.com), [official track page](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN2300002), licensed under [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/). ISRC USUAN2300002. The official MP3 is bundled unchanged as `public/audio/evening-kevin-macleod.mp3`; playback uses reduced gain, a soft start and repeat. Selected by the user on 17 September 2026. Page rustle remains synthesized. No claim about Weil’s personal listening preferences.
 - Three.js, React, Vite and supporting libraries retain their respective package licenses. Blender is the authoring tool; no Blender executable is distributed with this site.
 
 The reference images establish visual direction. They are not presented as renders of the implemented book. Scenes are artistic interpretations, not claims to reconstruct undocumented biographical events.
 
 Font and icon license notices are included in `public/licenses/`. Blender cover lettering uses the macOS Baskerville typeface converted to mesh outlines; the font software is not redistributed.
 
-Piano auditions (pending selection): original short compositions rendered with Salamander Grand Piano samples by Alexander Holm, CC BY 3.0. Samples are pitch-shifted, equalized, trimmed and mixed with soft room reflections. See [audio attribution](scripts/audio/LICENSE.md). These are choices for this edition, not documented preferences of Simone Weil. The current website soundtrack is unchanged.
+Previous piano auditions (not selected): original short compositions rendered with Salamander Grand Piano samples by Alexander Holm, CC BY 3.0. Samples are pitch-shifted, equalized, trimmed and mixed with soft room reflections. See [audio attribution](scripts/audio/LICENSE.md). These are choices for this edition, not documented preferences of Simone Weil. These auditions are not the selected soundtrack.
 
-Guitar auditions (pending selection): FreePats Spanish classical guitar by Roberto, version 2019-06-18, CC0 1.0. Original sparse arrangements with softened attacks, filtering, room resonance and fades. [Source and licensing](https://freepats.zenvoid.org/Guitar/acoustic-guitar.html); bundled notice in `public/audio/guitar-previews/LICENSE.md`.
+Previous guitar auditions (not selected): FreePats Spanish classical guitar by Roberto, version 2019-06-18, CC0 1.0. Original sparse arrangements with softened attacks, filtering, room resonance and fades. [Source and licensing](https://freepats.zenvoid.org/Guitar/acoustic-guitar.html); bundled notice in `public/audio/guitar-previews/LICENSE.md`.

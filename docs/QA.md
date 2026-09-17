@@ -155,3 +155,9 @@ The reading-distance formula changes from 7.85/5.6 to 7.45/5.3, approximately 5 
 Three new guitar auditions use a recorded nylon-string instrument with fewer notes, softened transients, stable harmony and lower levels than the rejected piano choices. No clipping in the rendered samples. User listening and selection remain pending; no independent speaker-listening approval claimed.
 
 Portrait 390 × 844 checked in the browser: header, book, reading text and controls visible; no console errors. Retained the prior 5.6 horizontal fit in portrait aspect ratios to preserve page-edge clearance while enlarging desktop framing. This is viewport emulation, not a physical-phone performance test. Production build and all 4 Sites worker tests passed.
+
+## Selected Evening soundtrack, 17 September 2026
+
+Replaced generated music with the user-selected official recording of Evening by Kevin MacLeod. Original MP3 metadata checked locally: stereo, 44.1 kHz, 160 kbps, 186.253 seconds. Recording unchanged; runtime gain 0.12, soft start, native repeat, pause/resume on mute. Attribution appears in About, CREDITS.md and public/licenses/evening-music.txt.
+
+Typecheck, 23 tests (including 4 focused recorded-audio lifecycle cases), 13 asset validations, build, and 4 Sites tests passed. Existing bundle-size advisory remains. Browser check was rejected by automatic approval review due to a usage-limit prerequisite; subsequent retry was also rejected. No alternate browser path was attempted. Actual in-browser listening remains unverified for this release. This pass changes no book geometry, layout or chapter text.

@@ -94,3 +94,8 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 - The user rejected the piano auditions as harsh, with overly obvious note/tone changes. Prepare guitar alternatives with rounded attacks, sparse low-register notes, stable harmony and a quiet sustained background. Do not confuse lower volume alone with a calmer arrangement. Present choices before replacing the soundtrack.
 - Enlarge the live open book a little further (about 5 percent), retaining header clearance and fixed page-turn framing. Limit this pass to these 2 requests.
+
+### Selected soundtrack, 17 September 2026
+
+- User chose option 3, “Evening” by Kevin MacLeod (guitar, cello, oboe). This supersedes the original synthesized soundtrack and the unselected piano/guitar auditions. Keep the official recording quiet, start only on a visitor gesture, and preserve mute and same-session playback position.
+- Bundle the unchanged official MP3 locally and retain CC BY 4.0 attribution in About, CREDITS.md and public/licenses/evening-music.txt. Do not make unrelated visual changes.

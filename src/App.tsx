@@ -255,6 +255,7 @@ export function App() {
             try { localStorage.setItem('simone-weil-reduced-motion', String(event.target.checked)); } catch { /* The setting still works when storage is unavailable. */ }
           }} /> Reduce motion</label>
           <div className="edition-actions"><button className="solid-button" onClick={fallback ? () => { setPanel(null); retryGraphics(); } : illustrated}>{fallback ? 'Return to the 3D book' : 'Read the illustrated edition'}<ArrowRight size={19} /></button></div>
+          <p className="edition-credit">Music: <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN2300002" target="_blank" rel="noreferrer">“Evening” by Kevin MacLeod</a> (incompetech.com), licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Played quietly on repeat.</p>
           <p className="edition-credit">An independent project by Bhavya Khimavat.</p>
         </div>}
       </div>
