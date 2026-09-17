@@ -99,3 +99,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 - User chose option 3, “Evening” by Kevin MacLeod (guitar, cello, oboe). This supersedes the original synthesized soundtrack and the unselected piano/guitar auditions. Keep the official recording quiet, start only on a visitor gesture, and preserve mute and same-session playback position.
 - Bundle the unchanged official MP3 locally and retain CC BY 4.0 attribution in About, CREDITS.md and public/licenses/evening-music.txt. Do not make unrelated visual changes.
+
+- Cleanup approved: remove rejected music auditions, their source sample banks, generation scripts and obsolete option documents. Keep only the selected Evening recording and its attribution in the deployed audio assets. Preserve the book, chapter assets and other project work.

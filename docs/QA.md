@@ -161,3 +161,9 @@ Portrait 390 × 844 checked in the browser: header, book, reading text and contr
 Replaced generated music with the user-selected official recording of Evening by Kevin MacLeod. Original MP3 metadata checked locally: stereo, 44.1 kHz, 160 kbps, 186.253 seconds. Recording unchanged; runtime gain 0.12, soft start, native repeat, pause/resume on mute. Attribution appears in About, CREDITS.md and public/licenses/evening-music.txt.
 
 Typecheck, 23 tests (including 4 focused recorded-audio lifecycle cases), 13 asset validations, build, and 4 Sites tests passed. Existing bundle-size advisory remains. Browser check was rejected by automatic approval review due to a usage-limit prerequisite; subsequent retry was also rejected. No alternate browser path was attempted. Actual in-browser listening remains unverified for this release. This pass changes no book geometry, layout or chapter text.
+
+### Soundtrack completion and cleanup
+
+After the interruption was resolved, the local in-app browser opened the book and showed sound on after the playback request succeeded. Mute changed to sound off; enabling again restored sound on. About showed Evening by Kevin MacLeod with the official track and CC BY 4.0 links. Browser warning/error logs were empty. This verifies playback controls, not independent speaker listening.
+
+Removed the rejected piano/guitar audition recordings, instrument sample banks, audition generators and their obsolete option documents. Their provenance remains in Git history. The selected MP3 and its license remain. Rebuilt the deployment output so deleted auditions are not shipped. Typecheck, 23 tests, 13 asset checks, production build and 4 Sites tests passed; the pre-existing bundle-size advisory remains.
