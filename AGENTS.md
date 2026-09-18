@@ -101,3 +101,10 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Bundle the unchanged official MP3 locally and retain CC BY 4.0 attribution in About, CREDITS.md and public/licenses/evening-music.txt. Do not make unrelated visual changes.
 
 - Cleanup approved: remove rejected music auditions, their source sample banks, generation scripts and obsolete option documents. Keep only the selected Evening recording and its attribution in the deployed audio assets. Preserve the book, chapter assets and other project work.
+
+### Release maintenance, 18 September 2026
+
+- Preserve the approved appearance, content and official Evening soundtrack during security/performance maintenance. The user authorized finishing the release and sharing its public Sites link; GitHub remains source-only.
+- Vite development/preview defaults to loopback only. Keep tooling patched and run full `npm audit --audit-level=moderate` with the release checks.
+- Keep the 3D scene dynamically imported, on-demand/visibility-aware rendering, and parallel initial asset requests. Test entry, both turn directions, fallback return and reduced motion when changing these lifecycles.
+- Shared texture files under `public/textures/shared` are required runtime dependencies of GLBs. Do not delete them as apparently unreferenced assets. Original authoring images are in `assets/source/textures`.

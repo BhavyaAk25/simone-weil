@@ -57,7 +57,7 @@ def reset():
     material('leaf_light','89896D')
     material('glass','8D907F')
     material('gilt_dark','856B3F',.6,.23)
-    facade_path=ROOT/'public/textures/paris-facade.webp'
+    facade_path=ROOT/'assets/source/textures/paris-facade.webp'
     if facade_path.exists():
         material('paris_engraving','FFFFFF',.86)
         texture=bpy.data.images.load(str(facade_path));texture.pack()
@@ -158,7 +158,7 @@ def portrait(name,loc,width,parent,rotation,artistic=False):
     if material_name not in M:
         mat=material(material_name,'FFFFFF',.82)
         filename='simone-weil-spine.jpg' if artistic else 'simone-weil-portrait.png'
-        image=bpy.data.images.load(str(ROOT/'public/textures'/filename))
+        image=bpy.data.images.load(str(ROOT/'assets/source/textures'/filename))
         image.pack()
         node=mat.node_tree.nodes.new('ShaderNodeTexImage');node.image=image
         mat.node_tree.links.new(node.outputs['Color'],mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])

@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import type { BookSnapshot, Chapter } from '../types';
 import { ENTER_DURATION, TURN_DURATION, clamp01, interval, entrancePose, turnPose, validDestination } from './motion';
 import { makePaperText } from './paper';
+import { FrameLoop } from './frameLoop';
 
 type Rig = { gltf: GLTF; mixer: THREE.AnimationMixer; action?: THREE.AnimationAction };
 type Options = {
@@ -49,7 +50,8 @@ export class BookScene {
   private textIndex = -1;
   private inspectionProgress: number | null = null;
   private observer: ResizeObserver;
-  private frame = 0;
+  private loop = new FrameLoop(now => this.tick(now));
+  private hiddenAt: number | null = null;
   private disposed = false;
   private lastFrame = 0;
   private motionStart = 0;
@@ -60,7 +62,7 @@ export class BookScene {
   private pointer = new THREE.Vector2();
   private cameraOffset = new THREE.Vector2();
   private look = new THREE.Vector3();
-  private metrics = { frames: 0, seconds: 0, fps: 0, drawCalls: 0, triangles: 0, longestFrameMs: 0 };
+  private metrics = { totalFrames: 0, frames: 0, seconds: 0, fps: 0, drawCalls: 0, triangles: 0, longestFrameMs: 0 };
   private motionFrames: number[] = [];
   state: BookSnapshot = { phase: 'loading', chapter: 0, progress: 0 };
 
@@ -80,24 +82,33 @@ export class BookScene {
     this.observer = new ResizeObserver(this.resize);
     this.observer.observe(element);
     this.resize();
-    this.frame = requestAnimationFrame(this.tick);
+    document.addEventListener('visibilitychange', this.visibilityChanged);
+    this.visibilityChanged();
   }
 
   async init() {
     try {
-      await Promise.all([
+      const initialChapter = this.options.initialChapter ?? 0;
+      const texturesReady = this.loadTextures();
+      const bookReady = this.loader.loadAsync(asset('models/book.glb')).then(book => {
+        if (this.disposed || this.graphicsLost) this.disposeObject(book.scene);
+        else this.book = book;
+        return book;
+      });
+      const [book, initialRig] = await Promise.all([
+        bookReady,
+        this.loadChapter(initialChapter, texturesReady),
+        Promise.all([
         document.fonts.load('400 64px "Cormorant Garamond"'),
         document.fonts.load('500 91px "Cormorant Garamond"'),
         document.fonts.load('italic 500 63px "Cormorant Garamond"'),
         document.fonts.load('500 34px Inter'),
-        this.loadTextures(),
+        texturesReady,
+        ]),
       ]);
       if (this.disposed || this.graphicsLost) return;
       this.environment();
       this.publish({ progress: 0.25 });
-      const book = await this.loader.loadAsync(asset('models/book.glb'));
-      if (this.disposed || this.graphicsLost) { this.disposeObject(book.scene); return; }
-      this.book = book;
       this.prepareMaterials(book.scene);
       this.group.add(book.scene);
       this.bookMixer = new THREE.AnimationMixer(book.scene);
@@ -112,8 +123,7 @@ export class BookScene {
       this.sample(this.readingAction, 0);
       this.bookMixer.update(0);
       this.publish({ progress: 0.65 });
-      const initialChapter = this.options.initialChapter ?? 0;
-      this.currentRig = await this.loadChapter(initialChapter);
+      this.currentRig = initialRig;
       if (this.disposed || this.graphicsLost) return;
       this.group.add(this.currentRig.gltf.scene);
       this.currentRig.gltf.scene.visible = false;
@@ -137,12 +147,17 @@ export class BookScene {
 
   private async loadTextures() {
     const loader = new THREE.TextureLoader();
+    const load = (path: string) => loader.loadAsync(asset(path)).then(texture => {
+      if (this.disposed || this.graphicsLost) texture.dispose();
+      else this.textures.push(texture);
+      return texture;
+    });
     const [paper, walnut, backdrop] = await Promise.all([
-      loader.loadAsync(asset('textures/paper.webp')),
-      loader.loadAsync(asset('textures/walnut.webp')),
-      loader.loadAsync(asset('textures/bookshop.webp')),
+      load('textures/paper.webp'),
+      load('textures/walnut.webp'),
+      load('textures/bookshop.webp'),
     ]);
-    if (this.disposed) { paper.dispose(); walnut.dispose(); backdrop.dispose(); return; }
+    if (this.disposed || this.graphicsLost) return;
     for (const texture of [paper, walnut]) {
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.wrapS = texture.wrapT = THREE.MirroredRepeatWrapping;
@@ -155,7 +170,6 @@ export class BookScene {
     this.backdrop = backdrop;
     this.scene.background = backdrop;
     this.scene.backgroundIntensity = 0.80;
-    this.textures.push(paper, walnut, backdrop);
     this.resize();
   }
 
@@ -242,10 +256,12 @@ export class BookScene {
     action.time = clamp01(progress) * action.getClip().duration;
   }
 
-  private loadChapter(index: number): Promise<Rig> {
+  private loadChapter(index: number, materialsReady: Promise<void> = Promise.resolve()): Promise<Rig> {
     const existing = this.cache.get(index);
     if (existing) return existing;
-    const promise = this.loader.loadAsync(asset(this.options.chapters[index].scene)).then(gltf => {
+    const promise = this.loader.loadAsync(asset(this.options.chapters[index].scene)).then(async gltf => {
+      try { await materialsReady; }
+      catch (error) { this.disposeObject(gltf.scene); throw error; }
       if (this.disposed || this.graphicsLost) { this.disposeObject(gltf.scene); throw new Error('Book unavailable'); }
       this.prepareMaterials(gltf.scene);
       const mixer = new THREE.AnimationMixer(gltf.scene);
@@ -300,6 +316,7 @@ export class BookScene {
     if (this.graphicsLost || (this.state.phase !== 'closed' && this.state.phase !== 'entering')) return;
     if (this.state.phase === 'entering' && !immediate) return;
     this.motionStart = performance.now();
+    if (document.hidden) this.hiddenAt = this.motionStart;
     this.publish({ phase: 'entering', progress: 0, error: undefined });
     if (immediate || this.options.reducedMotion) this.finishEntrance();
   };
@@ -333,6 +350,8 @@ export class BookScene {
       this.nextRig.gltf.scene.visible = false;
       this.setPopup(this.nextRig, 0);
       this.motionStart = performance.now();
+      if (document.hidden) this.hiddenAt = this.motionStart;
+      this.loop.invalidate();
       this.options.onRustle();
       if (this.options.reducedMotion) this.finishTurn();
     } catch (error) {
@@ -358,15 +377,22 @@ export class BookScene {
     this.prefetch(this.nextIndex);
   }
 
-  setPointer = (x: number, y: number) => { this.pointer.set(x, y); };
+  setPointer = (x: number, y: number) => {
+    this.pointer.set(x, y);
+    if (this.state.phase === 'reading' && !this.options.reducedMotion) this.loop.invalidate();
+  };
   setReducedMotion = (reduced: boolean) => {
     this.options.reducedMotion = reduced;
+    this.loop.invalidate();
     if (!reduced) return;
     if (this.state.phase === 'closed' || this.state.phase === 'entering') this.enter(true);
     else if (this.state.phase === 'turning' && this.motionStart && this.nextRig) this.finishTurn();
   };
   setInspectionProgress = (value: number | null) => {
-    if (import.meta.env.DEV) this.inspectionProgress = value === null ? null : clamp01(value);
+    if (import.meta.env.DEV) {
+      this.inspectionProgress = value === null ? null : clamp01(value);
+      this.loop.invalidate();
+    }
   };
   inspectContextLoss = () => {
     if (import.meta.env.DEV) this.renderer.getContext().getExtension('WEBGL_lose_context')?.loseContext();
@@ -415,7 +441,11 @@ export class BookScene {
     this.camera.position.copy(closedPosition).lerp(readingPosition, transition);
     const moving = !this.options.reducedMotion && this.state.phase === 'reading';
     // Keep the current framing fixed throughout a page turn.
-    if (this.state.phase !== 'turning') this.cameraOffset.lerp(moving ? this.pointer : new THREE.Vector2(), 0.035);
+    if (this.state.phase !== 'turning') {
+      const target = moving ? this.pointer : new THREE.Vector2();
+      this.cameraOffset.lerp(target, 0.035);
+      if (this.cameraOffset.distanceToSquared(target) < 0.000001) this.cameraOffset.copy(target);
+    }
     this.camera.position.x += this.cameraOffset.x * 0.1;
     this.camera.position.y += this.cameraOffset.y * 0.045;
     this.look.set(0, THREE.MathUtils.lerp(1.65, 0.75, transition), 0);
@@ -423,7 +453,7 @@ export class BookScene {
   }
 
   private tick = (now: number) => {
-    if (this.disposed || this.graphicsLost) return;
+    if (this.disposed || this.graphicsLost) return false;
     const dt = this.lastFrame ? (now - this.lastFrame) / 1000 : 0;
     this.lastFrame = now;
     if (import.meta.env.DEV && this.inspectionProgress === null && dt > 0 && this.motionStart && (this.state.phase === 'entering' || this.state.phase === 'turning')) {
@@ -455,6 +485,7 @@ export class BookScene {
     }
     this.updateCamera();
     this.renderer.render(this.scene, this.camera);
+    this.metrics.totalFrames++;
     this.metrics.frames++;
     this.metrics.seconds += dt;
     if (dt && (this.state.phase === 'entering' || this.state.phase === 'turning')) this.metrics.longestFrameMs = Math.max(this.metrics.longestFrameMs, Math.round(dt * 1000));
@@ -465,7 +496,12 @@ export class BookScene {
       this.metrics.frames = 0;
       this.metrics.seconds = 0;
     }
-    this.frame = requestAnimationFrame(this.tick);
+    const animating = this.inspectionProgress === null && (this.state.phase === 'entering'
+      || (this.state.phase === 'turning' && Boolean(this.motionStart && this.nextRig)));
+    const target = !this.options.reducedMotion && this.state.phase === 'reading' ? this.pointer : new THREE.Vector2();
+    const settling = this.state.phase !== 'turning' && this.cameraOffset.distanceToSquared(target) > 0.000001;
+    if (!animating && !settling) this.lastFrame = 0;
+    return animating || settling;
   };
 
   private resize = () => {
@@ -483,17 +519,32 @@ export class BookScene {
       this.backdrop.offset.set((1 - this.backdrop.repeat.x) / 2, (1 - this.backdrop.repeat.y) / 2);
     }
     this.updateCamera();
+    this.loop.invalidate();
   };
 
   private publish(change: Partial<BookSnapshot>) {
     this.state = { ...this.state, ...change };
     this.options.onChange({ ...this.state });
+    this.loop.invalidate();
   }
+
+  private visibilityChanged = () => {
+    const now = performance.now();
+    if (document.hidden) {
+      if (this.hiddenAt === null) this.hiddenAt = now;
+      this.loop.setPaused(true);
+    } else {
+      if (this.hiddenAt !== null && this.motionStart) this.motionStart += now - this.hiddenAt;
+      this.hiddenAt = null;
+      this.lastFrame = 0;
+      this.loop.setPaused(false);
+    }
+  };
 
   private contextLost = (event: Event) => {
     event.preventDefault();
     this.graphicsLost = true;
-    cancelAnimationFrame(this.frame);
+    this.loop.dispose();
     this.publish({ phase: 'error', error: 'The graphics connection was interrupted. The illustrated edition is available below.' });
   };
 
@@ -518,14 +569,16 @@ export class BookScene {
 
   dispose() {
     this.disposed = true;
-    cancelAnimationFrame(this.frame);
+    this.loop.dispose();
     this.observer.disconnect();
+    document.removeEventListener('visibilitychange', this.visibilityChanged);
     this.renderer.domElement.removeEventListener('webglcontextlost', this.contextLost);
     this.bookMixer?.stopAllAction();
     for (const promise of this.cache.values()) void promise.then(rig => { rig.mixer.stopAllAction(); this.disposeObject(rig.gltf.scene); }).catch(() => {});
     this.cache.clear();
     if (this.text) this.text.material.map?.dispose();
     this.disposeObject(this.scene);
+    if (this.book) this.disposeObject(this.book.scene);
     this.textures.forEach(texture => texture.dispose());
     this.environmentTarget?.dispose();
     this.renderer.dispose();

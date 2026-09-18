@@ -1,0 +1,97 @@
+{
+  "files": [
+    {
+      "file": "book.glb",
+      "beforeBytes": 3193840,
+      "afterBytes": 3088660,
+      "payloadBeforeSha256": "0f780666fcbebfe74d732a255a2a66df151a9fe8057c03cc8c60d044a1d57a40",
+      "payloadAfterSha256": "0f780666fcbebfe74d732a255a2a66df151a9fe8057c03cc8c60d044a1d57a40"
+    },
+    {
+      "file": "chapter-01.glb",
+      "beforeBytes": 2088416,
+      "afterBytes": 1717040,
+      "payloadBeforeSha256": "a00453b863a9bd81d6a3ecdeed6ca543dc5d0094213b85436c2491a7a6c7c6f8",
+      "payloadAfterSha256": "a00453b863a9bd81d6a3ecdeed6ca543dc5d0094213b85436c2491a7a6c7c6f8"
+    },
+    {
+      "file": "chapter-02.glb",
+      "beforeBytes": 1631604,
+      "afterBytes": 1526416,
+      "payloadBeforeSha256": "00005a1e363236f3c7baf27f4c852ff766680df22454fd119583beab2cbd69b2",
+      "payloadAfterSha256": "00005a1e363236f3c7baf27f4c852ff766680df22454fd119583beab2cbd69b2"
+    },
+    {
+      "file": "chapter-03.glb",
+      "beforeBytes": 1486368,
+      "afterBytes": 1114964,
+      "payloadBeforeSha256": "c5bfa876df6d585360c308033039a8c5a0e2b1aa7f4e7bfcf98b910d4ee1b034",
+      "payloadAfterSha256": "c5bfa876df6d585360c308033039a8c5a0e2b1aa7f4e7bfcf98b910d4ee1b034"
+    },
+    {
+      "file": "chapter-04.glb",
+      "beforeBytes": 466048,
+      "afterBytes": 360872,
+      "payloadBeforeSha256": "d9e7d6a08952b9251eb83799415d2ea46402d58d9cd1998dbb4583c29a25c25d",
+      "payloadAfterSha256": "d9e7d6a08952b9251eb83799415d2ea46402d58d9cd1998dbb4583c29a25c25d"
+    },
+    {
+      "file": "chapter-05.glb",
+      "beforeBytes": 612084,
+      "afterBytes": 506904,
+      "payloadBeforeSha256": "e22390e398a0151d704fd898fb71cc68ea603d3f15f1f2d2fa03e769526031db",
+      "payloadAfterSha256": "e22390e398a0151d704fd898fb71cc68ea603d3f15f1f2d2fa03e769526031db"
+    },
+    {
+      "file": "chapter-06.glb",
+      "beforeBytes": 1333444,
+      "afterBytes": 1228264,
+      "payloadBeforeSha256": "588a3aaac01ee3b0205d6cff9f1b7183055456f745dacb118a5ab70248422801",
+      "payloadAfterSha256": "588a3aaac01ee3b0205d6cff9f1b7183055456f745dacb118a5ab70248422801"
+    },
+    {
+      "file": "chapter-07.glb",
+      "beforeBytes": 866528,
+      "afterBytes": 761352,
+      "payloadBeforeSha256": "52d5cd68d0c9fb02fa316af028d5c3de20d43b7a00ad97d4311dce65f7bba5ef",
+      "payloadAfterSha256": "52d5cd68d0c9fb02fa316af028d5c3de20d43b7a00ad97d4311dce65f7bba5ef"
+    },
+    {
+      "file": "chapter-08.glb",
+      "beforeBytes": 452884,
+      "afterBytes": 347680,
+      "payloadBeforeSha256": "bbb35e8d805adc967d7de4386007646c6133e104e8e48bfc1ebe7cd64d172639",
+      "payloadAfterSha256": "bbb35e8d805adc967d7de4386007646c6133e104e8e48bfc1ebe7cd64d172639"
+    },
+    {
+      "file": "chapter-09.glb",
+      "beforeBytes": 1510980,
+      "afterBytes": 1139576,
+      "payloadBeforeSha256": "2d0152b79d9f08b1c4a5d8a8bccd6a7cc01d4df036bc9803b678de6e5b0dce60",
+      "payloadAfterSha256": "2d0152b79d9f08b1c4a5d8a8bccd6a7cc01d4df036bc9803b678de6e5b0dce60"
+    },
+    {
+      "file": "chapter-10.glb",
+      "beforeBytes": 2779872,
+      "afterBytes": 2674692,
+      "payloadBeforeSha256": "b0a86875498716f03c1f0cda6fb23ff8873d6089ff6461a0639f3822b359b883",
+      "payloadAfterSha256": "b0a86875498716f03c1f0cda6fb23ff8873d6089ff6461a0639f3822b359b883"
+    },
+    {
+      "file": "chapter-11.glb",
+      "beforeBytes": 349988,
+      "afterBytes": 244812,
+      "payloadBeforeSha256": "73e5830b3bb5d627a2d3e0051af19b094287f765030d18d56a819f8df5593100",
+      "payloadAfterSha256": "73e5830b3bb5d627a2d3e0051af19b094287f765030d18d56a819f8df5593100"
+    },
+    {
+      "file": "chapter-12.glb",
+      "beforeBytes": 262004,
+      "afterBytes": 156812,
+      "payloadBeforeSha256": "6673d0b213e9917bd0bb1339b5e6f6022ab99669878690b8424a7866df477b8b",
+      "payloadAfterSha256": "6673d0b213e9917bd0bb1339b5e6f6022ab99669878690b8424a7866df477b8b"
+    }
+  ],
+  "glbBytesSaved": 2166016,
+  "sharedBytes": 371405
+}

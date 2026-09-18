@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import { Box3, Matrix4, Quaternion, Vector3 } from 'three';
 
 const componentReaders = {
@@ -137,6 +138,31 @@ const paperHeight = (x, z) => {
   return 0.202 + 0.115 * Math.sin(Math.PI * u) * Math.exp(-1.8 * u) - 0.007 * u * u * Math.cos((v - 0.5) * Math.PI);
 };
 
+/** Only bundled, content-addressed images may be external to a model. */
+export function validateImages(glb, { directory = root } = {}) {
+  const extensions = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
+  for (const image of glb.json.images ?? []) {
+    assert(extensions[image.mimeType], 'Unsupported GLB image MIME type');
+    if (image.bufferView !== undefined) {
+      assert(!image.uri && glb.json.bufferViews?.[image.bufferView], 'Invalid embedded GLB image');
+      continue;
+    }
+    const match = /^\.\.\/textures\/shared\/([a-f0-9]{64})\.(png|jpg|webp)$/.exec(image.uri ?? '');
+    assert(match && match[2] === extensions[image.mimeType], 'External image must use a canonical shared texture URI');
+    const shared = path.join(directory, 'public/textures/shared');
+    const filename = path.join(shared, `${match[1]}.${match[2]}`);
+    assert(fs.realpathSync(filename) === path.join(fs.realpathSync(shared), path.basename(filename))
+      && fs.statSync(filename).isFile(), 'Shared texture must resolve inside its bundle');
+    const bytes = fs.readFileSync(filename);
+    assert(createHash('sha256').update(bytes).digest('hex') === match[1], 'Shared texture hash mismatch');
+    const valid = image.mimeType === 'image/png' ? bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
+      : image.mimeType === 'image/jpeg' ? bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+        : bytes.length >= 12 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP'
+          && bytes.readUInt32LE(4) + 8 === bytes.length;
+    assert(valid, 'Shared texture content does not match its MIME type');
+  }
+}
+
 export function inspectAsset(filename, { directory = root } = {}) {
   const bytes = fs.readFileSync(path.join(directory, 'public/models', filename)), glb = parseGlb(bytes), { json, accessor } = glb;
   const book = filename === 'book.glb', requiredClips = book ? ['open', 'turn', 'reading'] : ['unfold'];
@@ -157,7 +183,7 @@ export function inspectAsset(filename, { directory = root } = {}) {
     assert((indices?.length ?? positions.length / 3) % 3 === 0, 'Triangle index count is not divisible by three');
     triangles += (indices?.length ?? positions.length / 3) / 3;
   }
-  for (const image of json.images ?? []) assert(image.bufferView !== undefined && !image.uri && ['image/png', 'image/jpeg', 'image/webp'].includes(image.mimeType), 'GLB textures must be embedded browser-supported images');
+  validateImages(glb, { directory });
   const animations = {};
   for (const name of requiredClips) {
     const clip = json.animations?.find(animation => animation.name === name);

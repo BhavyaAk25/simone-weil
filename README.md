@@ -13,13 +13,14 @@ npm ci
 npm run dev -- --port 4173
 ```
 
-Open `http://localhost:4173/`. Click the spine or the opening button, tap, or press Enter. Navigate with the arrows, horizontal swipes or the contents. Music starts with the opening click, tap or Enter and can be muted. A visible 3D control returns from the illustrated edition to the same chapter. Reduced-motion preferences bypass the entrance and page animations.
+Open `http://127.0.0.1:4173/`. Development and preview bind only to the loopback interface by default. Click the spine or the opening button, tap, or press Enter. Navigate with the arrows, horizontal swipes or the contents. Music starts with the opening click, tap or Enter and can be muted. A visible 3D control returns from the illustrated edition to the same chapter. Reduced-motion preferences bypass the entrance and page animations.
 
 `?read` opens the illustrated edition directly. In development only, `?inspect` exposes a frame-position control and rendering measurements for inspecting the real entrance and turn sequence. Set progress to `0`, start an animation, then advance to a value between `0` and `1`. Uncheck the frame hold to run normally. These tools are excluded from the production interface.
 
 ## Build and verify
 
 ```sh
+npm audit --audit-level=moderate
 npm run typecheck
 npm test
 npm run validate:assets
@@ -70,3 +71,7 @@ The approved responsive header uses local transparent WebP artwork and accessibl
 The Sites project is registered in `.openai/hosting.json`. The default build uses the root-domain `/` base. `SITE_BASE_PATH` is available only for an explicitly requested alternate hosting path. Run `npm run test:sites` before packaging. The Sites connector handles source/version publication and viewer access; never store its temporary credentials in the repository.
 
 Editable Blender sources continue to use the public GitHub LFS endpoint specified in `.lfsconfig`, including when cloning the Sites source mirror. Runtime GLB and WebP assets are included directly in the deployed site.
+
+### Release efficiency
+
+The illustrated edition loads without the Three.js scene bundle. The 3D edition starts font, texture, book and first-chapter requests together; subsequent scenes are prefetched one chapter ahead/behind. Rendering stops after animation and pointer movement settle, and pauses in hidden tabs. Shared model images are content-addressed assets; deploy `public/textures/shared` alongside the GLBs. Authoring-only portrait/facade originals live under `assets/source/textures`.

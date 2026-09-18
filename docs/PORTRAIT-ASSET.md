@@ -2,7 +2,7 @@
 
 The front cover retains the anonymous 1942 New York photograph of Simone Weil, credited in CREDITS.md. The spine uses an artistic engraved adaptation, as specifically requested by the user. Both are mapped onto meshes parented to the corresponding animated cover/spine; the spine image is upright when the book stands in its starting pose.
 
-Built-in image-generation tool, style-transfer mode, 11 September 2026. Source output: `exec-1f333f1e-ab4e-444b-a725-bf3e35567a99.png`. Runtime derivative: `public/textures/simone-weil-spine.jpg`, resized to 768 pixels high and JPEG quality 88. The front photograph is `public/textures/simone-weil-portrait.png`.
+Built-in image-generation tool, style-transfer mode, 11 September 2026. Source output: `exec-1f333f1e-ab4e-444b-a725-bf3e35567a99.png`. Runtime derivative: `assets/source/textures/simone-weil-spine.jpg`, resized to 768 pixels high and JPEG quality 88. The front photograph is `assets/source/textures/simone-weil-portrait.png`.
 
 ## Final prompt
 

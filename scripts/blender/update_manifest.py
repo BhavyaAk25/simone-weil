@@ -4,11 +4,14 @@ This reports the files actually present; it does not establish browser acceptanc
 """
 import json
 import struct
+import runpy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
 def update():
+    # Optimize the complete asset set, including a mixture of fresh and older exports.
+    runpy.run_path(str(Path(__file__).with_name('share_textures.py')))['optimize'](ROOT)
     assets=[]
     for path in sorted((ROOT/'public/models').glob('*.glb')):
         data=path.read_bytes()

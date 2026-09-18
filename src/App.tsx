@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, SpeakerHigh, SpeakerSlash, X, ArrowUpRight, ArrowClockwise } from '@phosphor-icons/react';
 import { BookHeader } from './BookHeader';
 import { chapters } from './content/chapters';
-import { BookScene } from './book/BookScene';
+import type { BookScene } from './book/BookScene';
 import { BookAudio } from './book/audio';
 import type { BookSnapshot, Chapter } from './types';
 
@@ -49,6 +49,8 @@ export function App() {
   const [inspectionPaused, setInspectionPaused] = useState(inspect);
   const [metrics, setMetrics] = useState('');
   const [reduced, setReduced] = useState(initialReducedMotion);
+  const reducedRef = useRef(reduced);
+  reducedRef.current = reduced;
   const chapter = chapters[state.chapter];
   const reading = state.phase === 'reading' || state.phase === 'turning' || fallback;
   const busy = !fallback && state.phase !== 'reading';
@@ -63,12 +65,15 @@ export function App() {
   useEffect(() => {
     if (fallback || !stageRef.current) return;
     let scene: BookScene | undefined;
+    let cancelled = false;
+    const element = stageRef.current;
     setState(initialState);
-    try {
-      scene = new BookScene(stageRef.current, {
+    void import('./book/BookScene').then(({ BookScene }) => {
+      if (cancelled) return;
+      scene = new BookScene(element, {
         chapters,
         initialChapter: resumeChapter.current,
-        reducedMotion: reduced,
+        reducedMotion: reducedRef.current,
         onChange: setState,
         onRustle: () => audioRef.current.rustle(),
       });
@@ -78,10 +83,10 @@ export function App() {
       if (import.meta.env.DEV) {
         Object.assign(window, { __bookDebug: { getState: () => scene?.state, getMetrics: () => scene?.getMetrics() } });
       }
-    } catch {
-      setState({ ...initialState, phase: 'error', error: 'Your browser could not start the 3D edition. The illustrated edition is ready to read.' });
-    }
-    return () => { scene?.dispose(); sceneRef.current = null; };
+    }).catch(() => {
+      if (!cancelled) setState({ ...initialState, phase: 'error', error: 'Your browser could not start the 3D edition. The illustrated edition is ready to read.' });
+    });
+    return () => { cancelled = true; scene?.dispose(); sceneRef.current = null; };
   }, [fallback, retry]);
 
   useEffect(() => { sceneRef.current?.setReducedMotion(reduced); }, [reduced]);

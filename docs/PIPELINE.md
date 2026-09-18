@@ -79,3 +79,11 @@ The front cover now includes the photographic portrait and the spine an upright 
 ## Separate header artwork pipeline — 13 September
 
 Header sources live in `assets/source/header/`, with `scripts/blender/build_header.py` and `compress_header.py`. This is a UV-textured silhouette render with baked relief, separate from the actual 3D book mesh/animation pipeline. Runtime desktop/phone WebP files have transparent lower edges and contain no interface lettering. See HEADER-ASSETS.md for provenance, sizes and reproduction.
+
+## Lossless shared textures, 18 September 2026
+
+`update_manifest.py` now runs `share_textures.py` after export. It extracts byte-identical images used by multiple GLBs into `public/textures/shared/<sha256>.<extension>`. GLB images reference `../textures/shared/…`; single-use images remain embedded. The optimizer repacks buffer views with four-byte alignment and remaps accessor, sparse and extension references. Before writing, it verifies identical non-image semantics/payload hashes and exact image bytes. Repeating it is byte-idempotent, including after a subset is freshly exported. Deploy models and shared textures together.
+
+The release removes 2,166,016 GLB bytes and adds 371,405 shared bytes, saving 1,794,611 bytes across the collection. All 13 geometry/animation fingerprints match the prior exports. The evidence is `docs/qa/shared-texture-integrity.json`. Asset validation rejects noncanonical/remote paths, escaped symlinks, missing or altered files and wrong MIME signatures.
+
+Authoring inputs `paris-facade.webp`, `simone-weil-portrait.png` and `simone-weil-spine.jpg` moved to `assets/source/textures`; Blender packs them into sources as before. This removes 1,366,508 unused bytes from deployment, without deleting editable source material. No mesh compression or reauthoring was applied.
