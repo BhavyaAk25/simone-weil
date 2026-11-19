@@ -31,9 +31,9 @@
   "assets": [
     {
       "file": "book.glb",
-      "bytes": 3088660,
-      "meshes": 56,
-      "materialPrimitives": 58,
+      "bytes": 744844,
+      "meshes": 8,
+      "materialPrimitives": 15,
       "animations": {
         "open": 2,
         "reading": 1,
@@ -44,9 +44,9 @@
     },
     {
       "file": "chapter-01.glb",
-      "bytes": 1717040,
-      "meshes": 8,
-      "materialPrimitives": 38,
+      "bytes": 1297764,
+      "meshes": 11,
+      "materialPrimitives": 49,
       "animations": {
         "unfold": 1
       },
@@ -55,9 +55,9 @@
     },
     {
       "file": "chapter-02.glb",
-      "bytes": 1526416,
-      "meshes": 5,
-      "materialPrimitives": 29,
+      "bytes": 1733348,
+      "meshes": 9,
+      "materialPrimitives": 51,
       "animations": {
         "unfold": 1
       },
@@ -66,9 +66,9 @@
     },
     {
       "file": "chapter-03.glb",
-      "bytes": 1114964,
-      "meshes": 6,
-      "materialPrimitives": 26,
+      "bytes": 668820,
+      "meshes": 8,
+      "materialPrimitives": 35,
       "animations": {
         "unfold": 1
       },
@@ -77,9 +77,9 @@
     },
     {
       "file": "chapter-04.glb",
-      "bytes": 360872,
-      "meshes": 5,
-      "materialPrimitives": 16,
+      "bytes": 728488,
+      "meshes": 8,
+      "materialPrimitives": 35,
       "animations": {
         "unfold": 1
       },
@@ -88,9 +88,9 @@
     },
     {
       "file": "chapter-05.glb",
-      "bytes": 506904,
-      "meshes": 5,
-      "materialPrimitives": 22,
+      "bytes": 732468,
+      "meshes": 8,
+      "materialPrimitives": 41,
       "animations": {
         "unfold": 1
       },
@@ -99,9 +99,9 @@
     },
     {
       "file": "chapter-06.glb",
-      "bytes": 1228264,
-      "meshes": 6,
-      "materialPrimitives": 19,
+      "bytes": 756520,
+      "meshes": 8,
+      "materialPrimitives": 31,
       "animations": {
         "unfold": 1
       },
@@ -110,9 +110,9 @@
     },
     {
       "file": "chapter-07.glb",
-      "bytes": 761352,
-      "meshes": 6,
-      "materialPrimitives": 21,
+      "bytes": 374652,
+      "meshes": 9,
+      "materialPrimitives": 33,
       "animations": {
         "unfold": 1
       },
@@ -121,9 +121,9 @@
     },
     {
       "file": "chapter-08.glb",
-      "bytes": 347680,
-      "meshes": 5,
-      "materialPrimitives": 18,
+      "bytes": 672480,
+      "meshes": 8,
+      "materialPrimitives": 33,
       "animations": {
         "unfold": 1
       },
@@ -132,9 +132,9 @@
     },
     {
       "file": "chapter-09.glb",
-      "bytes": 1139576,
-      "meshes": 5,
-      "materialPrimitives": 26,
+      "bytes": 535316,
+      "meshes": 7,
+      "materialPrimitives": 36,
       "animations": {
         "unfold": 1
       },
@@ -143,9 +143,9 @@
     },
     {
       "file": "chapter-10.glb",
-      "bytes": 2674692,
-      "meshes": 5,
-      "materialPrimitives": 23,
+      "bytes": 645288,
+      "meshes": 8,
+      "materialPrimitives": 42,
       "animations": {
         "unfold": 1
       },
@@ -154,9 +154,9 @@
     },
     {
       "file": "chapter-11.glb",
-      "bytes": 244812,
-      "meshes": 6,
-      "materialPrimitives": 20,
+      "bytes": 913288,
+      "meshes": 8,
+      "materialPrimitives": 45,
       "animations": {
         "unfold": 1
       },
@@ -165,14 +165,23 @@
     },
     {
       "file": "chapter-12.glb",
-      "bytes": 156812,
-      "meshes": 5,
-      "materialPrimitives": 16,
+      "bytes": 2504708,
+      "meshes": 9,
+      "materialPrimitives": 46,
       "animations": {
         "unfold": 1
       },
       "poster": "../posters/chapter-12.webp",
       "source": "../../assets/source/chapter-12.blend"
+    },
+    {
+      "file": "lamp.glb",
+      "bytes": 617296,
+      "meshes": 14,
+      "materialPrimitives": 14,
+      "animations": {},
+      "poster": "../posters/lamp.webp",
+      "source": "../../assets/source/lamp.blend"
     }
   ]
 }

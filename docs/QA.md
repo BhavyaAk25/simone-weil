@@ -179,3 +179,81 @@ Removed the rejected piano/guitar audition recordings, instrument sample banks, 
 - Development measurements at a 1280×643 stage, DPR cap 1.75, macOS host/Chromium 153: normal entrance 265 samples at about 60fps/P95 18ms; traversal's last 2400 samples about 60fps/P95 17ms, longest 18ms. Closed-book total rendered frames remained at 3884 across separate observations while idle. This measures frame intervals on this host, not general device guarantees. Physical-phone performance remains unmeasured.
 - Published client file total: 25,368,720 →22,070,908 bytes, saving 3,297,812 bytes (13.0%). Initial app JS: 899,045 →243,313 bytes (about 73% smaller); Three.js loads in a separate 655,229-byte chunk only for 3D. Full 3D still needs that chunk. Shared-texture saving: 1,794,611 bytes across all chapters. These are file-size comparisons, not measured network speedups.
 - Kept source Blender files, historical QA images, licenses and hosting worker/tests. No lossy mesh compression, visual redesign or content rewrite in this pass.
+
+## Stripe Press pass: paper, printed leaf, drag and chapter 1-2 art, 18 November 2026
+
+Evidence: `docs/qa/stripe-review/after-*` (before: the files without the `after-` prefix; large frames are JPEG). All frames are headless Chrome 158 on macOS at 1440 × 900, using the development `?inspect` progress hold. Phone frames use iPhone 13 viewport emulation, not a physical device.
+
+- **Forward and backward turns**, chapter 1 to 2 and back, frozen at 0, 0.15, 0.30, 0.40, 0.48, 0.56, 0.62, 0.70, 0.85 and 1. Something is on both pages in every frame. The leaf carries the outgoing folded scene and the incoming writing, and no piece pops in or out in view. Before this pass, about 1.3 s of every turn showed blank pages.
+- **Leaf prints** were dumped from the GPU (`__bookDebug.getLeafPrints()`, development only): the full-resolution right half (folded chapter 1) and left half (chapter 2 writing).
+- **Drag to turn**, with real pointer events:
+  - a 150 px pull released early fell back to chapter 1;
+  - a slow 500 px pull followed the hand and completed to chapter 2;
+  - a quick 160 px backward flick returned to chapter 1.
+- **Reduced motion:** Next completes immediately. A horizontal drag falls back to the existing swipe turn.
+- **Phone portrait** (emulated): open, turn and the HTML writing below the canvas all work.
+- **Checks:** typecheck, 33 unit tests (motion tests rewritten for the new contract), build, 4 Sites tests and 13 asset validations pass. Fresh Cycles posters for chapters 1 and 2 were inspected; a black-crown artifact in the first render was fixed.
+- **`npm audit --audit-level=moderate` fails** on advisories in vitest's mocker and in vite's file-matching dependencies (picomatch) that were published after 18 September. The lockfile is unchanged from that release, and the fix needs dependency updates. Not addressed in this visual pass, so this pass is not release-ready.
+
+Known limitations:
+
+- The leaf print is an orthographic snapshot. As the leaf lands, the real folded pieces (up to 0.1 high) replace the print with a shift of a few pixels.
+- The print's text is a little lighter than the live writing for about 0.1 s while the leaf settles.
+- There is no corner-lift hover hint: the pop-up pieces are upright at rest, so a lifting corner would cut through them. The stage cursor shows "grab" instead.
+- Page-block thickness does not yet change from chapter 1 to chapter 12; that needs a Blender change to the page heights that every chapter's hinges depend on.
+- Not checked: a physical phone or tablet, Safari, Firefox, or GPU memory on low-end devices. The two leaf prints use about 64 MB.
+
+## Cover, lamp, magnifier, held book and chapters 3-12, 18 November 2026
+
+Unattended overnight pass at the user's request. All frames are headless Chrome 158 on macOS at 1440 × 900 (some at 2× density). Phone frames are iPhone 13 emulation, not a physical device. Evidence is in `docs/qa/stripe-review/full-*`.
+
+- **Cover:** checked in the real entrance frames (closed spine, rising cover, descent). The photograph, foil title, badge, 12-dot line and blind corners read correctly and the right way up. The spine keeps the engraved likeness, with Cormorant lettering. `book.glb` dropped from 2.95 to 1.84 MiB because the photo now loads as a shared web texture.
+- **Lamp:**
+  - Pulling the chain by clicking the lamp, using the Lamp control or pressing L dims the room and lights the pages in about 0.7 s. The header dims with the room, and it switches back off.
+  - Placement was checked at 1280 × 720, 1440 × 900 and 1920 × 1080; the shade stays below the header and clear of the book. The lamp model is hidden below 1.15:1 aspect, where the control still dims the room.
+  - Two faults found in testing were fixed: the chain and harp shadowed their own light, and the glass looked flat.
+- **Loupe:**
+  - Magnified writing (about 2.6×) and paper pieces render crisply, and the lens works with the lamp on.
+  - On touch it floats above the finger, and touch-moving it does not turn the page. Esc or M puts it away. While it is out, the book holds still.
+- **Held book:** with reduced motion off, the book tilts after the pointer on a spring (about 1.7° pitch, 1.7° yaw) and lifts so no edge sinks into the desk. Pieces flex a little as it moves. During a turn the tilt eases back to rest, and the gutter clipping and leaf prints account for it.
+- **Chapters 3-12:**
+  - All 12 spreads were captured. Three were recomposed after the first capture (3, 4, 10), because the hero piece hid the landmark behind it.
+  - Close-ups of chapters 6 and 12 were checked: the village, olive, militia, readable posthumous titles and bookcase.
+  - A turn sweep ran forward 1 to 12 and back 12 to 1, frozen at 0.45 and 0.6. Every leaf carried its print, the run ended correctly on chapter 1, and there were no page errors.
+- **Checks:** 13 assets plus the lamp pass validation, and the unit tests pass.
+- **`npm audit`:** vitest is patched to 5.1.0, vite to 6.4.6, and source-map-js is overridden to 1.2.2. One high advisory remains, picomatch GHSA-fc5q-39xc-vjpf (ReDoS through extglob patterns). It lists every published version, including the latest 4.0.7, so no fix exists. The package is a build-tool dependency of vite and vitest, is not shipped in `dist/client`, and only processes the project's own glob patterns. The release check stays red until upstream publishes a fix.
+
+Remaining limitations:
+
+- Lamp lighting and the loupe double some rendering cost. They render only while changing or moving, but they were not measured on low-end GPUs or physical phones.
+- The cover's photograph is the existing 657 × 868 source, so it softens up close.
+- The scenery figures are expressive silhouettes, not portraits. Simone is recognised by her round glasses and bob.
+- Safari and Firefox were not tested.
+
+## Stripe-quality rebuild: integration check, 18 November 2026
+
+Done by the main agent after the Book, Room and Interaction agents finished. Headless Chrome 158 on macOS, 1440 × 900. Each agent's own evidence is in `docs/qa/rebuild/{book,room,interaction}/`.
+
+- **Release checks:**
+  - pass: typecheck, unit tests (41), `validate:assets` (15: book, 12 chapters, lamp, desk textures), build, Sites tests (4);
+  - fail at the time: `npm audit`, on picomatch only (no fixed version published; see the earlier entry).
+- **Real-time screencast of a click turn from chapter 1 to 2** (65 frames, about 1.2 s): pieces ride and fold with the lifting leaf; the leaf carries the next writing on its back; the new scene rises after landing. No grey slabs, printed blocks or white rectangles. A drag from chapter 2 to 3 follows the hand and completes.
+- **Sweep:** 11 turns forward and 11 back, each 1.04–1.13 s, ending on chapter 1 with no page or shader errors.
+- **Lamp and loupe:**
+  - The lamp stands on the desk with a contact shadow and lights the pages.
+  - The loupe magnifies the writing and the scenery correctly with the lamp on and off, including the room behind.
+- **Remaining:**
+  - Cards on the stationary page pass edge-on for 1–2 frames.
+  - The pressed-flat incoming scene is briefly visible after the leaf passes vertical; solid cards such as the chapter 3 chalkboard read as a dark panel then.
+  - The lamp is about 60% of real scale so it can fit the frame.
+  - The contact and reflection passes add about 1.6 ms per rendered frame.
+  - No physical devices, Safari or Firefox tested.
+
+## Release commit, 18 November 2026
+
+The user asked to commit the Stripe-quality rebuild to the existing GitHub repository. Final checks before the commit:
+- pass: `npm audit --audit-level=moderate` (0 vulnerabilities; the picomatch advisory now resolves without lockfile changes);
+- pass: typecheck, 41 unit tests, `validate:assets` (15), production build (existing bundle-size advisory only), and Sites tests (4).
+
+The browser acceptance frames are the integration entries above. Physical-device, Safari and Firefox testing are still not done.
+

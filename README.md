@@ -15,6 +15,8 @@ npm run dev -- --port 4173
 
 Open `http://127.0.0.1:4173/`. Development and preview bind only to the loopback interface by default. Click the spine or the opening button, tap, or press Enter. Navigate with the arrows, horizontal swipes or the contents. Music starts with the opening click, tap or Enter and can be muted. A visible 3D control returns from the illustrated edition to the same chapter. Reduced-motion preferences bypass the entrance and page animations.
 
+While reading you can also drag a page across to turn it, take up the magnifier (the Loupe control or M; Esc puts it away), and pull the desk lamp's chain (click the lamp, use the Lamp control, or press L) to darken the room and read by lamplight. The lamp's state is remembered per visitor. The book tilts gently after the pointer as if held, unless reduced motion is on.
+
 `?read` opens the illustrated edition directly. In development only, `?inspect` exposes a frame-position control and rendering measurements for inspecting the real entrance and turn sequence. Set progress to `0`, start an animation, then advance to a value between `0` and `1`. Uncheck the frame hold to run normally. These tools are excluded from the production interface.
 
 ## Build and verify
@@ -41,7 +43,7 @@ Blender 5.1 was used for the source scenes. Rebuild the first working milestone 
 /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python scripts/blender/build_book.py -- --milestone
 ```
 
-The script also accepts `--book` and `--chapters 1 2 3 4 5 6 7 8 9 10 11 12`. Runtime exports go to `public/models`, posters to `public/posters`, and editable scenes to `assets/source`. See [PIPELINE](docs/PIPELINE.md) before modifying coordinate conventions or animation names.
+The script also accepts `--book` and `--chapters 1 2 3 4 5 6 7 8 9 10 11 12`. The desk lamp is built separately with `scripts/blender/build_lamp.py`. The cover artwork, leather grain and paper stock come from `python3 scripts/make-cover-textures.py` and `python3 scripts/make-paper-texture.py` (numpy and Pillow). Runtime exports go to `public/models`, posters to `public/posters`, and editable scenes to `assets/source`. See [PIPELINE](docs/PIPELINE.md) before modifying coordinate conventions or animation names.
 
 `.blend` sources use Git LFS. Run `git lfs install` before committing sources and `git lfs pull` after cloning. Optimized GLBs, textures and posters are ordinary Git files, directly usable by static hosting.
 

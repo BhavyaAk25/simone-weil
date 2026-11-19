@@ -108,3 +108,31 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Vite development/preview defaults to loopback only. Keep tooling patched and run full `npm audit --audit-level=moderate` with the release checks.
 - Keep the 3D scene dynamically imported, on-demand/visibility-aware rendering, and parallel initial asset requests. Test entry, both turn directions, fallback return and reduced motion when changing these lifecycles.
 - Shared texture files under `public/textures/shared` are required runtime dependencies of GLBs. Do not delete them as apparently unreferenced assets. Original authoring images are in `assets/source/textures`.
+
+### Stripe Press review, 17 November 2026
+
+- The user asked to study stripe.press and improve the book, its images and 3D scenes from it. `docs/STRIPE-PRESS-REVIEW.md` holds the observations, baseline frames and a phased plan. Planning only: no phase is approved yet, and earlier approvals (header, walnut library, fixed turn camera, soundtrack) remain in force.
+- User correction, 18 November: lighting is not a priority; do not lead with a pointer lamp. Focus on page texture, how pages move during interaction, and how the book looks and works. Adapt Stripe's good ideas to a pop-up book; no straight copy.
+- 18 November: user approved every plan item for chapters 1 and 2 first ("do all for 1 2 then I'll see"). Implemented: the printed turning leaf (pieces travel with their page, writing never fades), a 2.1 s turn, drag to turn, book-wide smooth paper stock, gutter shading, and new chapter 1-2 art with a clear left page. Chapters 3-12 art waits for the user's review of 1 and 2. See `docs/PIPELINE.md` and `docs/QA.md` for the contract and limitations.
+
+### Full Stripe-quality pass, 18 November 2026 (user asleep; work autonomously)
+
+- User approved chapters 1-2 ("looks good") and asked to complete the whole book to the same standard: chapters 3-12, and a better cover after studying Stripe Press covers.
+- Make interaction feel like a real book that is held, not static. Add a magnifier (loupe) like Stripe's, adapted to this book.
+- Add a lamp in keeping with the aesthetic, with an old-fashioned pull switch or metal pull chain. Pulling it lights the lamp and darkens the room so only the lamp's light remains.
+- Stripe Press is the quality reference across the board. Earlier constraints still apply: the front cover photograph and engraved spine likeness, fixed page-turn framing, the Evening soundtrack, the approved header and walnut room, accessible text and reduced motion.
+- 18 November overnight result: cover, lamp (L), loupe (M), held-book tilt, card-stock fibres and the chapter 3-12 art pass are implemented and verified in headless Chrome. Not committed or published; awaiting the user's review. Keep the lamp state per visitor, the loupe's still book, and the left page clear of scenery in future chapter work.
+
+### Stripe-quality rebuild, 18 November 2026
+
+- The user rejected the overnight pass:
+  - the lamp floats and is gimmicky;
+  - the cover must be much better;
+  - the 3D book is not at Stripe's level;
+  - turns still show blocky pieces;
+  - page quality is weak;
+  - the loupe is broken and its handle poor.
+- The user asked for a robust study of every small Stripe Press detail, followed by subagents doing the work. `docs/QUALITY-SPEC.md` records the study, diagnosis, acceptance gates and file ownership.
+- Book, Room and Interaction agents own disjoint files. `BookScene.ts` was split into `materials.ts` (Book), `room.ts` (Room) and `loupe.ts` (Interaction); BookScene itself belongs to Interaction during this rebuild. Main integrates.
+- Front-cover interpretation: the 1942 photograph is printed into the leather as a halftone or line screen, the way Stripe prints portraits on cloth, instead of a pasted framed rectangle. It remains her photograph.
+- Rebuild result, 18 November: the Book, Room and Interaction agents finished and the main agent integrated and verified the work (`docs/QA.md`). The agents are inactive; the main agent owns all files again. Chapter foregrounds now sit at y ≥ −1.30. Committed to GitHub at the user's request; awaiting the user's review.

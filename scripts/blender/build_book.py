@@ -57,6 +57,13 @@ def reset():
     material('leaf_light','89896D')
     material('glass','8D907F')
     material('gilt_dark','856B3F',.6,.23)
+    # Chapter 1-2 art pass (18 November): deeper foliage, bark and garden colours.
+    material('leaf_deep','4C5243')
+    material('bark','6A5342')
+    material('terracotta','9C5A40')
+    material('flower','B98A3E')
+    material('cobble','A39A8B')
+    material('cobble_light','C4BBAA')
     facade_path=ROOT/'assets/source/textures/paris-facade.webp'
     if facade_path.exists():
         material('paris_engraving','FFFFFF',.86)
@@ -143,7 +150,8 @@ def disk(name,x,y,z,r,mat,parent=None,n=48):
 
 def text(name,body,loc,size,mat='ink',parent=None,rotation=(math.pi/2,0,0),align='CENTER'):
     c=bpy.data.curves.new(name,'FONT');c.body=body;c.size=size;c.align_x=align;c.align_y='CENTER';c.extrude=.0006;c.resolution_u=3
-    serif='/System/Library/Fonts/Supplemental/Baskerville.ttc'
+    serif=str(ROOT/'node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff')
+    if not Path(serif).exists():serif='/System/Library/Fonts/Supplemental/Baskerville.ttc'
     if Path(serif).exists():
         try: c.font=bpy.data.fonts.load(serif)
         except Exception: pass
@@ -220,39 +228,372 @@ def curved_sheet(name,side,zbase,parent,mat='paper',width=2.40,length=3.10):
         bpy.context.view_layer.objects.active=ob;bpy.ops.object.modifier_apply(modifier=sol.name)
     return ob
 
+# ---- Book object (Stripe-quality rebuild, 18 November 2026) -----------------
+# One continuous skinned leather binding (back board, rounded spine, front
+# board, edges and turn-ins), bent by a chain of 11 bones that follows an
+# analytic spine curve; two backed page blocks with paper top, toned sheet-line
+# edges, endpaper sheets and silk headbands, and a "Closed" thickness morph
+# that rounds the spine/concaves the fore-edge and closes the gap between the
+# blocks. Atlas constants are shared with scripts/make-cover-textures.py.
+BK_XJ,BK_XF,BK_BT,BK_TS,BK_YH=.06,2.49,.042,.020,1.645   # joint x, fore-edge x, board, spine shell, half height
+BK_THICK=.52                    # closed outer thickness (CoverHinge pivot at .26)
+BK_PIVOT=(0.0,.26)
+BK_L_CLOSED,BK_L_OPEN=.52,.12   # spine Hermite handle length closed/open
+BK_BONES=11
+BK_CORNER=.05                   # plan-view corner radius of the boards
+BLOCK_BOTTOM=.045               # page blocks rest on the pastedowns
+BLOCK_TOP_CLOSED=.2585          # closed: both blocks flatten to meet (2*.26 - 3 mm gap)
+BLOCK_ROUND=.035                # rounding shift of the middle sheets toward the spine
+U_BACK,U_SPINE,U_FRONT=(.01,.43),(.43,.57),(.57,.99)
+V_OUT,V_IN=(.012,.848),(.875,.990)
+
+def _rot(a,p):
+    """Rotate (x,z) about the cover pivot by a (Blender rotation about +Y)."""
+    x,z=p[0]-BK_PIVOT[0],p[1]-BK_PIVOT[1]
+    return (BK_PIVOT[0]+x*math.cos(a)+z*math.sin(a),BK_PIVOT[1]-x*math.sin(a)+z*math.cos(a))
+
+def _hermite(u,a):
+    """Outer spine curve at cover angle a (pi closed, 0 open): point, unit tangent."""
+    p0=(BK_XJ,0.0);t0=(-1.0,0.0)
+    p1=_rot(a,(-BK_XJ,0.0));c,s=math.cos(a),math.sin(a);t1=(-c,s)   # arrival direction
+    L=BK_L_OPEN+(BK_L_CLOSED-BK_L_OPEN)*(a/math.pi)
+    h00,h10,h01,h11=2*u**3-3*u**2+1,u**3-2*u**2+u,-2*u**3+3*u**2,u**3-u**2
+    d00,d10,d01,d11=6*u**2-6*u,3*u**2-4*u+1,-6*u**2+6*u,3*u**2-2*u
+    P=tuple(h00*p0[i]+h10*L*t0[i]+h01*p1[i]+h11*L*t1[i] for i in (0,1))
+    D=tuple(d00*p0[i]+d10*L*t0[i]+d01*p1[i]+d11*L*t1[i] for i in (0,1))
+    n=math.hypot(*D) or 1
+    return P,(D[0]/n,D[1]/n)
+
+def _spine_arc(a=math.pi,n=400):
+    pts=[_hermite(i/n,a)[0] for i in range(n+1)]
+    cum=[0.0]
+    for i in range(n):cum.append(cum[-1]+math.dist(pts[i],pts[i+1]))
+    return cum
+
+def _spine_u_at_arc(frac):
+    cum=_spine_arc();total=cum[-1];target=frac*total
+    for i in range(len(cum)-1):
+        if cum[i+1]>=target:
+            t=(target-cum[i])/max(1e-9,cum[i+1]-cum[i]);return (i+t)/(len(cum)-1)
+    return 1.0
+
+def _sgnpow(v,e):return math.copysign(abs(v)**e,v)
+
+def _ease(s):return s*s*(3-2*s)
+
+def _cover_angle(frame):return math.pi*(1-_ease(min(1,max(0,frame/60))))
+
+def binding_stations():
+    """Cross-section stations from the back fore-edge to the front fore-edge,
+    in the closed rest pose: outer point, inner point, region, spine u,
+    atlas U (outer), physical arc s."""
+    st=[];e=.5;r=BK_BT/2
+    def board(front):
+        out=[]
+        # Fore-edge round (superellipse) from the tip to the flat face.
+        cx=BK_XF-r
+        for k in range(7):
+            phi=math.pi/2*k/6            # 0 at tip
+            dx=r*_sgnpow(math.cos(phi),e);dz=r*_sgnpow(math.sin(phi),e)
+            o=(cx+dx,r-dz);i=(cx+dx,r+dz)
+            out.append((o,i,'round',phi))
+        # Flat face with a joint groove near the spine.
+        xs=[cx-.04*t for t in (.25,.5,1)]+[cx-.04-(cx-.04-(BK_XJ+.09))*t for t in (.2,.4,.6,.8,1.)]
+        xs+=[BK_XJ+.09-.09*t for t in (1/6,2/6,3/6,4/6,5/6)]
+        for x in xs:
+            g=.0075*math.exp(-((x-(BK_XJ+.032))/.012)**2)            # hinge groove
+            ramp=min(1,max(0,(x-BK_XJ)/.07));th=BK_TS+(BK_BT-BK_TS)*_ease(ramp)
+            out.append(((x,g),(x,th+g*.5),'board',x))
+        if front:
+            out=[(( _rot(math.pi,(-o[0],o[1])) ),( _rot(math.pi,(-i[0],i[1])) ),reg,val) for o,i,reg,val in out]
+        return out
+    back=board(False)
+    for o,i,reg,val in back:st.append(dict(o=o,i=i,region='back',kind=reg,val=val))
+    # Spine: stations evenly spaced in arc length (u excludes the joint ends).
+    for k in range(1,24):
+        u=_spine_u_at_arc(k/24);P,T=_hermite(u,math.pi);n=(-T[1],T[0])   # outward
+        st.append(dict(o=P,i=(P[0]-BK_TS*n[0],P[1]-BK_TS*n[1]),region='spine',kind='spine',val=k/24,u=u))
+    front=board(True)
+    for o,i,reg,val in reversed(front):st.append(dict(o=o,i=i,region='front',kind=reg,val=val))
+    # Physical arc length along the outer path and atlas U.
+    s=0.0;prev=None
+    for d in st:
+        if prev:s+=math.dist(prev,d['o'])
+        d['s']=s;prev=d['o']
+    flat=(BK_XF-BK_BT/2)-BK_XJ
+    for d in st:
+        if d['region']=='spine':d['U']=U_SPINE[0]+(U_SPINE[1]-U_SPINE[0])*d['val']
+        else:
+            x=d['o'][0] if d['region']=='back' else d['o'][0]
+            if d['kind']=='round':
+                f=1-d['val']/(math.pi/2)               # 0 at the flat face, 1 at the tip
+                d['U']=U_BACK[0]-.01*f if d['region']=='back' else U_FRONT[1]+.01*f
+            else:
+                t=(x-BK_XJ)/flat                       # 0 at the joint, 1 at the fore-edge face
+                d['U']=U_BACK[1]-(U_BACK[1]-U_BACK[0])*t if d['region']=='back' else U_FRONT[0]+(U_FRONT[1]-U_FRONT[0])*t
+        # Plan-view corner rounding of the boards.
+        if d['region']=='spine':d['Y']=BK_YH
+        else:
+            dist=BK_XF-d['o'][0];rc=BK_CORNER
+            d['Y']=BK_YH-rc+math.sqrt(max(0,rc*rc-max(0,rc-dist)**2)) if dist<rc else BK_YH
+    return st
+
+def binding_bone_frame(u,a):
+    P,T=_hermite(u,a)
+    X=Vector((T[0],0,T[1]));Yv=Vector((0,1,0));Z=X.cross(Yv)
+    m=Matrix.Identity(4)
+    for r in range(3):m[r][0],m[r][1],m[r][2]=X[r],Yv[r],Z[r]
+    m[0][3],m[1][3],m[2][3]=P[0],0,P[1]
+    return m
+
+def build_binding():
+    st=binding_stations();n=len(st)
+    # Loop around the cross-section: outer stations, then inner stations back.
+    loop=[(k,'o') for k in range(n)]+[(k,'i') for k in range(n-2,0,-1)]
+    NB,NY=5,9
+    verts=[];uvs={};uv1={};rows=[]
+    def point(d,side,row):
+        o,i=Vector((d['o'][0],0,d['o'][1])),Vector((d['i'][0],0,d['i'][1]))
+        if d['kind']=='round' and d['val']<1e-6:i=o
+        m=(o+i)/2;p=o if side=='o' else i;b=(o-i).length/2
+        kind,idx=row
+        if kind=='mid':
+            y=(d['Y']-b)*idx;q=p.copy()
+        else:
+            phi=math.pi/2*idx/NB;sgn=1 if kind=='head' else -1
+            c=_sgnpow(math.cos(phi),.5);q=m+(p-m)*c
+            y=sgn*((d['Y']-b)+b*_sgnpow(math.sin(phi),.5))
+        return Vector((q.x,y,q.z)),y,b
+    rowspec=[('tail',NB-j) for j in range(NB)]+[('mid',-1+2*j/(NY-1)) for j in range(NY)]+[('head',j+1) for j in range(NB)]
+    grid=[]
+    for li,(k,side) in enumerate(loop):
+        col=[]
+        for row in rowspec:
+            p,y,b=point(st[k],side,row);col.append(len(verts));verts.append(p)
+        grid.append(col)
+    faces=[];face_meta=[]
+    L=len(loop)
+    for li in range(L):
+        lj=(li+1)%L
+        for r in range(len(rowspec)-1):
+            faces.append((grid[li][r],grid[lj][r],grid[lj][r+1],grid[li][r+1]));face_meta.append((li,lj,r))
+    mesh=bpy.data.meshes.new('Binding');mesh.from_pydata([tuple(v) for v in verts],[],faces);mesh.update()
+    # Materials: leather everywhere except the inner face of the spine (lining).
+    for name in ['leather','crash']:mesh.materials.append(M[name])
+    ua=mesh.uv_layers.new(name='UVMap');ub=mesh.uv_layers.new(name='Physical')
+    yb=BK_YH-BK_BT/2
+    def atlas(k,side,row,y,face_side):
+        d=st[k]
+        if face_side=='o':
+            U=d['U'];
+            kind,idx=row
+            if kind=='mid':V=V_OUT[0]+(yb-y)/(2*yb)*(V_OUT[1]-V_OUT[0])
+            else:
+                f=idx/NB;V=V_OUT[0]*(1-f) if kind=='head' else V_OUT[1]+.012*f
+            return (U,1-V)
+        U=d['U'];kind,idx=row
+        t=(yb-max(-yb,min(yb,y)))/(2*yb)
+        V=V_IN[0]+t*(V_IN[1]-V_IN[0])
+        return (min(.999,max(.001,U)),1-V)
+    for poly,(li,lj,r) in zip(mesh.polygons,face_meta):
+        ka,sa=loop[li];kb,sb=loop[lj]
+        face_side='o' if (sa=='o' and sb=='o') else 'i'
+        inner_spine=face_side=='i' and st[ka]['region']=='spine' and st[kb]['region']=='spine'
+        poly.material_index=1 if inner_spine and rowspec[r][0]=='mid' and rowspec[r+1][0]=='mid' else 0
+        for corner,li_x,r_x in zip(poly.loop_indices,(li,lj,lj,li),(r,r,r+1,r+1)):
+            k,side=loop[li_x]
+            p,y,b=point(st[k],side,rowspec[r_x])
+            ua.data[corner].uv=atlas(k,side,rowspec[r_x],y,face_side)
+            # Physical units for the tiled grain: outer arc length and length along y.
+            kind,idx=rowspec[r_x]
+            if kind=='mid':v1=-y
+            else:
+                # Across the head/tail round the grain advances by arc length, not y.
+                arc=b*math.pi/2*idx/NB
+                v1=-((st[k]['Y']-b)+arc) if kind=='head' else (st[k]['Y']-b)+arc
+            ub.data[corner].uv=(st[k]['s']/.6,v1/.6)
+    for poly in mesh.polygons:poly.use_smooth=True
+    obj=bpy.data.objects.new('Binding',mesh);bpy.context.collection.objects.link(obj)
+    # Skin weights by station: rigid boards, spine shared between neighbouring bones.
+    groups=[obj.vertex_groups.new(name=f'binding.{b:02}') for b in range(BK_BONES)]
+    for li,(k,side) in enumerate(loop):
+        d=st[k]
+        if d['region']=='back':w=[(0,1.)]
+        elif d['region']=='front':w=[(BK_BONES-1,1.)]
+        else:
+            x=d['val']*(BK_BONES-1);b0=int(math.floor(x));f=x-b0
+            w=[(b0,1-f)]+([(b0+1,f)] if f>1e-6 and b0+1<BK_BONES else [])
+        for vi in grid[li]:
+            for b,wt in w:groups[b].add([vi],wt,'REPLACE')
+    return obj,st
+
+def build_spine_rig(binding):
+    data=bpy.data.armatures.new('Spine rig');arm=bpy.data.objects.new('Spine',data)
+    bpy.context.collection.objects.link(arm);bpy.context.view_layer.objects.active=arm
+    bpy.ops.object.select_all(action='DESELECT');arm.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT')
+    us=[k/(BK_BONES-1) for k in range(BK_BONES)]
+    # Bones sit on the outer curve, evenly spaced in arc length.
+    us=[_spine_u_at_arc(u) for u in us]
+    for k,u in enumerate(us):
+        P,_=_hermite(u,math.pi)
+        b=data.edit_bones.new(f'binding.{k:02}');b.head=(P[0],0,P[1]);b.tail=(P[0],.08,P[1]);b.roll=0
+    bpy.ops.object.mode_set(mode='OBJECT')
+    binding.parent=arm
+    mod=binding.modifiers.new('Skin','ARMATURE');mod.object=arm
+    rest=[binding_bone_frame(u,math.pi) for u in us]
+    for f in range(61):
+        a=_cover_angle(f)
+        for k,u in enumerate(us):
+            pb=arm.pose.bones[f'binding.{k:02}'];pb.rotation_mode='QUATERNION'
+            D=binding_bone_frame(u,a)@rest[k].inverted()
+            pb.matrix=D@data.bones[pb.name].matrix_local
+            pb.keyframe_insert('location',frame=f);pb.keyframe_insert('rotation_quaternion',frame=f)
+    ad=arm.animation_data;action=ad.action;action.name='open_Spine';ad.action=None
+    tr=ad.nla_tracks.new();tr.name='open';strip=tr.strips.new('open',0,action);strip.name='open'
+    return arm,us
+
+def block_mesh(name,side):
+    """A backed page block for one side (side=1 right, -1 left), open pose, with
+    paper top, sheet-line edges, endpaper underside and silk headbands."""
+    top=lambda x,y:paper_height(x,y)
+    rr=.014;x0=.018;xend=2.418;ys=[-1.55+3.1*j/12 for j in range(13)];NZ=6
+    roll=[(x0-rr*math.sin(a),-rr*(1-math.cos(a))) for a in [math.pi/2*k/4 for k in range(4,0,-1)]]
+    xs=[x0+2.4*(k/36)**1.35 for k in range(37)]
+    stations=[(x,dz) for x,dz in roll]+[(x,0.0) for x in xs]
+    zt=lambda i,y:top(max(x0,stations[i][0]),y)+stations[i][1]
+    verts=[];faces=[];mats=[];uvs=[];closed=[]
+    def V(x,y,z,uv,fz):
+        verts.append((x,y,z));uvs.append(uv)
+        # Closed morph: keep each sheet's height fraction, flatten the top to
+        # meet the other block, and shift middle sheets toward the spine.
+        t=top(max(x0,x),y);f=min(1,max(0,(z-BLOCK_BOTTOM)/(t-BLOCK_BOTTOM)))
+        f=fz if fz is not None else f
+        zc=BLOCK_BOTTOM+f*(BLOCK_TOP_CLOSED-BLOCK_BOTTOM)+(z-BLOCK_BOTTOM-f*(t-BLOCK_BOTTOM))
+        closed.append((x-BLOCK_ROUND*(2*f-f*f),y,zc))
+        return len(verts)-1
+    def quadgrid(rows,mat):
+        for r in range(len(rows)-1):
+            for c in range(len(rows[r])-1):
+                faces.append((rows[r][c],rows[r][c+1],rows[r+1][c+1],rows[r+1][c]));mats.append(mat)
+    # Paper top (with gutter roll).
+    rows=[[V(x,y,zt(i,y),(abs(x)/2.4,(y+1.55)/3.1),None) for i,(x,_) in enumerate(stations)] for y in ys]
+    quadgrid(rows,0)
+    # Head and tail edges, fore-edge, back: toned sheet lines. v = height fraction.
+    for y,flip in [(-1.55,False),(1.55,True)]:
+        rows=[[V(x,y,BLOCK_BOTTOM+(zt(i,y)-BLOCK_BOTTOM)*k/NZ,(x/2.5,k/NZ),k/NZ) for i,(x,_) in enumerate(stations)] for k in range(NZ+1)]
+        if flip:rows=[list(reversed(r)) for r in rows]
+        quadgrid(rows,1)
+    for x,ix,flip in [(xend,len(stations)-1,False),(stations[0][0],0,True)]:
+        rows=[[V(x,y,BLOCK_BOTTOM+(zt(ix,y)-BLOCK_BOTTOM)*k/NZ,((y+1.55)/3.1,k/NZ),k/NZ) for y in ys] for k in range(NZ+1)]
+        if flip:rows=[list(reversed(r)) for r in rows]
+        quadgrid(rows,1)
+    rows=[[V(x,y,BLOCK_BOTTOM,(x/.9,y/.9),0.0) for x,_ in stations] for y in ys]
+    rows=[list(reversed(r)) for r in rows];quadgrid(rows,2)
+    # Headbands: silk beads along the back of the block at head and tail.
+    for yc in (-1.556,1.556):
+        ring=10;zs=[BLOCK_BOTTOM+.004+(top(x0,yc)-.006-BLOCK_BOTTOM)*k/8 for k in range(9)]
+        rows=[]
+        for k,z in enumerate(zs):
+            row=[]
+            for j in range(ring+1):
+                a=math.tau*j/ring
+                f=(z-BLOCK_BOTTOM)/(top(x0,yc)-BLOCK_BOTTOM)
+                row.append(V(.012+.0095*math.cos(a),yc+.0095*math.sin(a),z,(k/8,j/ring),f))
+            rows.append(row)
+        quadgrid(rows,3)
+    if side<0:
+        verts=[(-x,y,z) for x,y,z in verts];closed=[(-x,y,z) for x,y,z in closed]
+        faces=[tuple(reversed(f)) for f in faces]
+    mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.update()
+    for m in ['paper','page_edge','endpaper','headband']:mesh.materials.append(M[m])
+    uv=mesh.uv_layers.new(name='UVMap')
+    for poly,mi in zip(mesh.polygons,mats):
+        poly.material_index=mi;poly.use_smooth=mi==3 or mi==0
+        for li in poly.loop_indices:
+            vi=mesh.loops[li].vertex_index;uv.data[li].uv=uvs[vi]
+    return mesh,closed
+
+def page_block(name,side,parent,zoff):
+    mesh,closed=block_mesh(name,side)
+    if zoff:
+        for v in mesh.vertices:v.co.z+=zoff
+        closed=[(x,y,z+zoff) for x,y,z in closed]
+    ob=bpy.data.objects.new(name,mesh);bpy.context.collection.objects.link(ob);ob.parent=parent
+    ob.shape_key_add(name='Basis');key=ob.shape_key_add(name='Closed')
+    for p,c in zip(key.data,closed):p.co=c
+    for f in range(61):
+        key.value=(_cover_angle(f)/math.pi)**1.3;key.keyframe_insert(data_path='value',frame=f)
+    ad=mesh.shape_keys.animation_data;action=ad.action;action.name=f'open_{name}';ad.action=None
+    tr=ad.nla_tracks.new();tr.name='open';strip=tr.strips.new('open',0,action);strip.name='open'
+    return ob
+
+def flat_plane(name,x0,x1,y0,y1,z,mat,parent,uvscale=None,nx=1,ny=1):
+    verts=[(x0+(x1-x0)*i/nx,y0+(y1-y0)*j/ny,z) for j in range(ny+1) for i in range(nx+1)]
+    faces=[(j*(nx+1)+i,j*(nx+1)+i+1,(j+1)*(nx+1)+i+1,(j+1)*(nx+1)+i) for j in range(ny) for i in range(nx)]
+    if x1<x0:faces=[tuple(reversed(f)) for f in faces]
+    mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.update()
+    uv=mesh.uv_layers.new(name='UVMap')
+    for p in mesh.polygons:
+        for li in p.loop_indices:
+            v=mesh.vertices[mesh.loops[li].vertex_index].co;uv.data[li].uv=(v.x/(uvscale or 1),v.y/(uvscale or 1))
+    ob=bpy.data.objects.new(name,mesh);bpy.context.collection.objects.link(ob);attach(ob,mat,parent)
+    return ob
+
+def ribbon(parent):
+    """Silk marker: from between the leaves at the gutter, over the tail edge
+    and the board's square, ending with a swallowtail just past the board."""
+    path=[(-1.40,.199),(-1.52,.199),(-1.548,.193),(-1.553,.17),(-1.553,.08),(-1.556,.054),(-1.575,.0455),
+          (-1.63,.0445),(-1.652,.041),(-1.664,.030),(-1.676,.014),(-1.695,.004),(-1.735,.0015)]
+    xa,xb=.072,.116;verts=[];faces=[]
+    for y,z in path:verts+=[(xa,y,z+.0012),(xb,y,z+.0012)]
+    last=len(path)-1
+    for k in range(last-1):faces.append((2*k,2*k+2,2*k+3,2*k+1))
+    notch=len(verts);verts.append(((xa+xb)/2,path[-1][0]+.024,path[-1][1]+.0012))
+    k=last-1;faces.append((2*k,2*k+2,notch,2*k+3,2*k+1))
+    mesh=bpy.data.meshes.new('Ribbon');mesh.from_pydata(verts,[],faces);mesh.update()
+    uv=mesh.uv_layers.new(name='UVMap')
+    for p in mesh.polygons:
+        p.use_smooth=True
+        for li in p.loop_indices:
+            v=mesh.vertices[mesh.loops[li].vertex_index].co;uv.data[li].uv=((v.x-xa)/(xb-xa),v.y)
+    ob=bpy.data.objects.new('Ribbon',mesh);bpy.context.collection.objects.link(ob);attach(ob,'ribbon',parent)
+    sol=ob.modifiers.new('Silk','SOLIDIFY');sol.thickness=.0012;sol.offset=-1
+    bpy.context.view_layer.objects.active=ob;bpy.ops.object.modifier_apply(modifier=sol.name)
+    return ob
+
 def book():
+    material('page_edge','E2D6BD',.85)
+    material('endpaper','606648',.82)
+    material('headband','8A3A2E',.45)
+    material('ribbon','6E2A22',.38)
+    material('crash','8A7458',.95)
     root=empty('BookRoot')
-    box('BackCover',(1.24,0,.024),(2.55,3.30,.092),'leather',root,.039)
-    # Slightly inset endpaper and a second leather lip create a substantial binding.
-    box('Back board inset',(1.24,0,.076),(2.48,3.23,.023),'leather_dark',root,.026)
     cover=empty('CoverHinge',(0,0,.26),root)
-    box('FrontCover',(-1.24,0,-.236),(2.55,3.30,.092),'leather',cover,.039)
-    box('Front board inset',(-1.24,0,-.184),(2.48,3.23,.023),'leather_dark',cover,.026)
-    for inset,weight in [(.0,.006),(.046,.003)]:
-        for x in [-2.34+inset,-.14-inset]:box('Blind tooled gilt rule',(x,0,-.284),(weight,2.94-2*inset,.002),'brass',cover,0)
-        for y in [-1.47+inset,1.47-inset]:box('Blind tooled gilt rule',(-1.24,y,-.284),(2.20-2*inset,weight,.002),'brass',cover,0)
-    for x in [-2.23,-.25]:
-        for y in [-1.34,1.34]:
-            for sign in [-1,1]:line('Embossed corner flourish',(x,y,-.285),(x+sign*.055,y+.05,-.285),.004,'brass',cover)
-    text('Front title','THE LIFE OF\nSIMONE WEIL',(-1.24,.94,-.287),.235,'brass',cover,rotation=(math.pi,0,math.pi))
-    portrait('Front portrait',(-1.24,-.18,-.289),1.04,cover,(math.pi,0,math.pi))
-    text('Front subtitle','A LIFE IN 12 CHAPTERS',(-1.24,-1.08,-.287),.067,'brass',cover,rotation=(math.pi,0,math.pi))
-    spine=empty('Spine')
-    box('Spine leather',(-.045,0,.255),(.13,3.30,.49),'leather',spine,.054)
-    for y in [-1.40,-1.23,1.23,1.40]:
-        box('Raised sewn band',(-.118,y,.255),(.021,.052,.447),'leather_dark',spine,.015)
-        box('Fine spine gilt',(-.132,y,.255),(.004,.009,.405),'brass',spine,.001)
-    text('Spine title','The Life of Simone Weil',(-.134,.20,.255),.142,'brass',spine,rotation=(math.pi/2,0,-math.pi/2))
-    portrait('Spine portrait',(-.135,-.91,.255),.31,spine,(math.pi,math.pi/2,0),artistic=True)
-    animate(spine,'scale',[(0,(1,1,1)),(60,(1,1,.2))],'open')
-    # Individually curved layers, alternating tiny offsets: no rectangular page blocks.
-    rng=random.Random(104)
-    for side,parent,zoff in [(1,root,0),(-1,cover,-.26)]:
-        for i in range(32):
-            width=2.39+rng.uniform(-.008,.009)
-            curved_sheet('Bound ivory leaf',side,.090+i*.00323+zoff,parent,'paper_edge' if i%5==0 else 'paper',width,3.105+rng.uniform(-.008,.008))
-        curved_sheet('RightPage' if side==1 else 'LeftPage',side,.202+zoff,parent)
-    animate(cover,'rotation_euler',[(0,(0,math.pi,0)),(60,(0,0,0))],'open')
+    animate(cover,'rotation_euler',[(f,(0,_cover_angle(f),0)) for f in range(61)],'open')
+    # Continuous skinned binding and its spine rig. 'Spine' is the armature,
+    # a sibling of BookRoot as before; the 'open' clip bends its bones.
+    binding,_=build_binding()
+    arm,us=build_spine_rig(binding)
+    bpy.context.scene.frame_set(0)
+    # Stable marker nodes kept for other code and the validator.
+    back=empty('BackCover',(1.27,0,BK_BT/2),root)
+    front=empty('FrontCover',(-1.27,0,BK_BT/2-.26),cover)
+    empty('Front cover art',(-1.27,0,-.26),cover)
+    title=empty('Spine title');title.parent=arm;title.parent_type='BONE';title.parent_bone=f'binding.{BK_BONES//2:02}'
+    bpy.context.view_layer.update()
+    P,_=_hermite(us[BK_BONES//2],math.pi);title.matrix_world=Matrix.Translation((P[0],0,P[1]))
+    # Printed endpapers (pastedowns) inside the leather turn-ins.
+    ti=.105;z=BK_BT+.0012
+    flat_plane('Back endpaper',BK_XJ+.035,BK_XF-ti,-(BK_YH-ti),BK_YH-ti,z,'endpaper',back,.9,1,1)
+    back_ep=bpy.data.objects['Back endpaper'];back_ep.location=(-1.27,0,-BK_BT/2)
+    flat_plane('Front endpaper',-(BK_XJ+.035),-(BK_XF-ti),-(BK_YH-ti),BK_YH-ti,z,'endpaper',front,.9,1,1)
+    bpy.data.objects['Front endpaper'].location=(1.27,0,-BK_BT/2)
+    # Backed page blocks: the top surface is exactly paper_height().
+    page_block('RightPage',1,root,0)
+    page_block('LeftPage',-1,cover,-.26)
+    ribbon(root)
+    # Raised reading panel (contract unchanged).
     reading_h=empty('ReadingHinge',(-1.225,-1.43,paper_height(-1.225,-1.43)+.008-.26),cover)
     reading_h['reading_panel']=True
     verts=[(-1.025,0,0),(1.025,0,0),(1.025,2.33,0),(-1.025,2.33,0)]
@@ -264,9 +605,7 @@ def book():
     bpy.context.view_layer.objects.active=panel;bpy.ops.object.modifier_apply(modifier=sol.name)
     animate(reading_h,'rotation_euler',[(0,(0,0,0)),(30,(math.radians(18),0,0))],'reading')
     reading_h['runtime_flat_unless_reading']=True
-    # Seam thread remains beneath the gutter and never intersects the turning leaf.
-    for y in [-1.31,-.86,-.42,0,.42,.86,1.31]:
-        line('Binding stitch',(-.03,y-.021,.073),(.03,y+.021,.073),.005,'tobacco',root)
+    # Turning leaf (contract unchanged): four baked curl poses.
     verts=[];faces=[];nx=48;ny=8
     for j in range(ny+1):
         for i in range(nx+1):
@@ -282,8 +621,6 @@ def book():
         key=leaf.shape_key_add(name=f'Turn{int(t*100)}');keys.append(key)
         for idx,p in enumerate(key.data):
             u=(idx%(nx+1))/nx;r=.02+u*2.4
-            # Curl along the sheet's arc length: the free edge rolls inward as
-            # the sheet rises, keeping the turn inside the reading composition.
             bend=2.6*math.sin(t*math.pi)
             base=t*math.pi-bend/2
             if abs(bend)<1e-6:
@@ -299,7 +636,6 @@ def book():
     ad=leaf.data.shape_keys.animation_data;action=ad.action;action.name='turn_FlexibleLeaf';ad.action=None
     tr=ad.nla_tracks.new();tr.name='turn';st=tr.strips.new('turn',0,action);st.name='turn'
     leaf['runtime_hidden_at_rest']=True
-    box('Ribbon',(1.90,-1.47,.074),(.095,.32,.007),'red',root,.003)
     bpy.context.scene.frame_set(60)
     return root,leaf
 
@@ -427,37 +763,254 @@ def lamp(name,x,y,h,parent):
     polygon(name+' crown',[(x-.105*h,h*.96),(x+.105*h,h*.96),(x,h*1.055)],.010,y,'ink_soft',parent)
     for dx in [-.055,.055]:line(name+' lantern bars',(x+dx*h,y-.017,h*.78),(x+dx*h,y-.017,h*.95),.006,'ink',parent)
 
+# ---- Chapter 1-2 art pass helpers (18 November 2026) ----------------------
+
+def lobed(cx,cz,rx,rz,lobes,notch,rng,start=0.0,end=math.tau):
+    # Leafy outline: rounded lobes with small notches between leaf tips.
+    closed=end-start>=math.tau-1e-6
+    n=lobes*4
+    pts=[]
+    for i in range(n if closed else n+1):
+        a=start+(end-start)*i/n
+        r=1+.06*math.sin(a*lobes*.5+rng.random())+rng.uniform(-.03,.03)
+        if i%2:r*=1-notch
+        pts.append((cx+rx*r*math.cos(a),cz+rz*r*math.sin(a)))
+    return pts
+
+def broadleaf(name,x,y,h,parent,seed=1,width=.36,bark_patches=False,palette=('leaf_deep','leaf','leaf_light')):
+    # A connected tree: forked trunk, limbs, and an irregular crown made of
+    # several overlapping lobed masses at three depths (shade, mid, sunlit).
+    rng=random.Random(seed)
+    t=h*.042
+    polygon(name+' forked trunk',[(x-t*1.7,0),(x+t*1.6,0),(x+t*.95,h*.20),(x+t*1.05,h*.44),(x+h*.15,h*.63),(x+h*.12,h*.67),(x+t*.25,h*.52),
+        (x-t*.25,h*.56),(x-h*.16,h*.70),(x-h*.19,h*.67),(x-t*1.15,h*.44),(x-t*.95,h*.20)],.010,y,'bark',parent)
+    if bark_patches:
+        # Plane-tree bark sheds in pale patches.
+        for i in range(4):
+            zz=h*(.06+i*.09);xx=x+rng.uniform(-.4,.4)*t
+            polygon(name+' pale bark',[(xx-t*.55,zz),(xx+t*.5,zz+h*.012),(xx+t*.45,zz+h*.05),(xx-t*.5,zz+h*.04)],.004,y-.006,'stone',parent)
+    cz=h*.72;rx=h*width;rz=rx*.80
+    masses=[(0,0,.78),(-.52,-.18,.55),(.55,-.14,.58),(-.30,.40,.52),(.28,.44,.50),(.02,.68,.36)]
+    # Each overlapping mass gets its own minute depth: coincident faces render
+    # black in the Cycles poster even though the browser hides it.
+    for k,(dx,dz,sc) in enumerate(masses):
+        polygon(name+' shaded crown',lobed(x+dx*rx,cz+dz*rz,rx*sc,rz*sc,12,.16,rng),.007,y-.005-k*.0008,palette[0],parent)
+    # Limbs show through gaps between the shaded and sunlit masses.
+    for sign,dz in [(-1,.10),(1,.0),(-1,.42),(1,.46)]:
+        line(name+' limb',(x,y-.009,h*.60),(x+sign*rx*.55,y-.009,cz+dz*rz),.014,'bark',parent)
+    for k,(dx,dz,sc) in enumerate(masses[:5]):
+        polygon(name+' mid crown',lobed(x+(dx-.10)*rx,cz+(dz+.10)*rz,rx*sc*.66,rz*sc*.66,10,.16,rng),.007,y-.014-k*.0008,palette[1],parent)
+    # Sunlit sprays from the upper left, where the room's window light falls.
+    for i in range(6):
+        a=math.pi*rng.uniform(.35,.95);r=rng.uniform(.25,.62)
+        polygon(name+' sunlit spray',lobed(x+math.cos(a)*r*rx,cz+math.sin(a)*r*rz,rx*.17,rz*.17,8,.18,rng),.006,y-.022-i*.0008,palette[2],parent)
+    for i in range(9):
+        a=math.pi*(.02+.96*i/8)+rng.uniform(-.08,.08)
+        bx=x+math.cos(a)*rx*.86;bz=cz+math.sin(a)*rz*.86
+        tip=(bx+math.cos(a)*h*.11,bz+math.sin(a)*h*.09)
+        leaf_shape(name+' edge leaf',(bx,bz),tip,h*.030,y-.005,palette[0],parent)
+
+def laurel_bush(name,x,y,h,parent,seed=5,pot=False):
+    # Dense laurel built from many pointed leaves in three depth layers.
+    rng=random.Random(seed)
+    base=h*.30 if pot else 0
+    if pot:
+        polygon(name+' terracotta pot',[(x-h*.17,0),(x+h*.17,0),(x+h*.21,base*.86),(x-h*.21,base*.86)],.012,y,'terracotta',parent)
+        polygon(name+' pot rim',[(x-h*.235,base*.80),(x+h*.235,base*.80),(x+h*.235,base),(x-h*.235,base)],.010,y-.006,'terracotta',parent)
+        line(name+' rim shadow',(x-h*.21,y-.012,base*.80),(x+h*.21,y-.012,base*.80),.006,'tobacco',parent)
+    polygon(name+' stem',[(x-h*.025,base*.9),(x+h*.025,base*.9),(x+h*.02,h*.55),(x-h*.02,h*.55)],.008,y,'bark',parent)
+    cz=base+(h-base)*.55;rx=h*.27;rz=(h-base)*.45
+    polygon(name+' shaded mass',lobed(x,cz,rx*.92,rz*.92,18,.10,rng),.007,y-.004,'leaf_deep',parent)
+    for layer,mat in enumerate(['leaf_deep','leaf','leaf_light']):
+        for i in range(24-layer*6):
+            a=rng.uniform(0,math.tau);r=math.sqrt(rng.random())*(1-.18*layer)
+            bx=x+math.cos(a)*r*rx*.85;bz=cz+math.sin(a)*r*rz*.85
+            direction=a+rng.uniform(-.6,.6);length=h*rng.uniform(.10,.15)
+            leaf_shape(name+' laurel leaf',(bx,bz),(bx+math.cos(direction)*length,bz+math.sin(direction)*length),length*.26,y-.010-layer*.007,mat,parent)
+
+def person(name,x,y,h,parent,hair='bob',glasses=False,cape=False,carry=None):
+    # Front-facing cut-paper figure with a readable outline: hair, coat, legs, shoes.
+    leg=.032*h
+    for side in (-1,1):
+        lx=x+side*.045*h
+        polygon(name+' leg',[(lx-leg,.035*h),(lx+leg,.035*h),(lx+leg*.9,.34*h),(lx-leg*.9,.34*h)],.012,y,'ink',parent)
+        # Toes turn slightly outward.
+        polygon(name+' shoe',[(lx-leg*1.2+min(0,side)*leg*.7,0),(lx+leg*1.2+max(0,side)*leg*.7,0),(lx+leg*1.1,.045*h),(lx-leg*1.1,.045*h)],.012,y,'ink',parent)
+    if cape:
+        coat=[(x-.24*h,.27*h),(x+.24*h,.27*h),(x+.12*h,.66*h),(x+.075*h,.735*h),(x-.075*h,.735*h),(x-.12*h,.66*h)]
+    else:
+        coat=[(x-.15*h,.30*h),(x+.15*h,.30*h),(x+.115*h,.52*h),(x+.155*h,.42*h),(x+.19*h,.44*h),(x+.12*h,.71*h),(x+.075*h,.74*h),
+              (x-.075*h,.74*h),(x-.12*h,.71*h),(x-.19*h,.44*h),(x-.155*h,.42*h),(x-.115*h,.52*h)]
+    polygon(name+' coat',coat,.012,y,'ink',parent)
+    polygon(name+' neck',[(x-.025*h,.72*h),(x+.025*h,.72*h),(x+.025*h,.79*h),(x-.025*h,.79*h)],.012,y,'ink',parent)
+    hr=.075*h;hz=.855*h
+    polygon(name+' head',[(x+hr*math.cos(i*math.tau/32),hz+hr*1.08*math.sin(i*math.tau/32)) for i in range(32)],.012,y,'ink',parent)
+    if hair=='bob':
+        # Chin-length bob with a straight fringe, as in her childhood photographs.
+        pts=[(x-hr*1.22,hz-hr*.55)]+[(x+hr*1.18*math.cos(a),hz+hr*.1+hr*1.12*math.sin(a)) for a in [math.pi*(1-i/16) for i in range(17)]]+[(x+hr*1.22,hz-hr*.55),(x+hr*.95,hz-hr*.55)]
+        polygon(name+' bob hair',pts,.012,y,'ink',parent)
+    elif hair=='scarf':
+        # Headscarf knotted at the nape, as factory women wore it.
+        polygon(name+' headscarf',[(x-hr*1.18,hz-hr*.15),(x-hr*1.1,hz+hr*.7),(x-hr*.5,hz+hr*1.2),(x+hr*.5,hz+hr*1.2),(x+hr*1.1,hz+hr*.7),(x+hr*1.18,hz-hr*.15),(x+hr*1.5,hz-hr*.55),(x+hr*1.2,hz-hr*.65),(x+hr*.95,hz-hr*.3)],.012,y,'ink',parent)
+    elif hair=='short':
+        polygon(name+' short hair',[(x-hr*1.08,hz+hr*.05)]+[(x+hr*1.08*math.cos(a),hz+hr*.12+hr*1.05*math.sin(a)) for a in [math.pi*(1-i/14) for i in range(15)]]+[(x+hr*1.08,hz+hr*.05)],.012,y,'ink',parent)
+    elif hair=='cap':
+        polygon(name+' cap',[(x-hr*1.15,hz+hr*.35),(x+hr*1.55,hz+hr*.35),(x+hr*1.1,hz+hr*.55),(x+hr*.8,hz+hr*1.15),(x-hr*.8,hz+hr*1.15),(x-hr*1.1,hz+hr*.6)],.012,y,'ink',parent)
+    elif hair=='beret':
+        polygon(name+' beret',[(x-hr*1.45,hz+hr*.55),(x+hr*1.3,hz+hr*.75),(x+hr*1.05,hz+hr*1.2),(x-hr*.2,hz+hr*1.38),(x-hr*1.15,hz+hr*1.05)],.012,y,'ink',parent)
+        polygon(name+' beret stalk',[(x-hr*.05,hz+hr*1.3),(x+hr*.12,hz+hr*1.3),(x+hr*.1,hz+hr*1.55),(x-hr*.03,hz+hr*1.55)],.012,y,'ink',parent)
+    # Light cut details sit one layer forward of the silhouette.
+    line(name+' collar',(x-.05*h,y-.009,.735*h),(x+.05*h,y-.009,.725*h),.0075,'stone',parent)
+    if glasses:
+        for side in (-1,1):
+            gx=x+side*hr*.42
+            polygon(name+' round lens',[(gx+hr*.30*math.cos(i*math.tau/20),hz+hr*.05+hr*.30*math.sin(i*math.tau/20)) for i in range(20)],.004,y-.009,'paper_light',parent)
+            polygon(name+' lens glint',[(gx+hr*.17*math.cos(i*math.tau/16),hz+hr*.05+hr*.17*math.sin(i*math.tau/16)) for i in range(16)],.004,y-.013,'ink_soft',parent)
+        line(name+' bridge',(x-hr*.13,y-.012,hz+hr*.1),(x+hr*.13,y-.012,hz+hr*.1),.004,'paper_light',parent)
+    if carry=='book':
+        polygon(name+' book',[(x+.12*h,.40*h),(x+.22*h,.42*h),(x+.21*h,.55*h),(x+.11*h,.53*h)],.006,y-.010,'red',parent)
+        line(name+' book page edge',(x+.215*h,y-.014,.425*h),(x+.205*h,y-.014,.545*h),.004,'paper_light',parent)
+    if carry=='paper':
+        polygon(name+' newspaper',[(x+.10*h,.42*h),(x+.27*h,.45*h),(x+.26*h,.62*h),(x+.09*h,.59*h)],.005,y-.011,'paper_light',parent)
+        for k in range(3):line(name+' newsprint',(x+.12*h,y-.015,(.56-k*.04)*h),(x+.24*h,y-.015,(.585-k*.04)*h),.003,'ink_soft',parent)
+    if carry=='case':
+        polygon(name+' suitcase',[(x+.12*h,.02*h),(x+.36*h,.02*h),(x+.36*h,.22*h),(x+.12*h,.22*h)],.010,y-.010,'tobacco',parent)
+        line(name+' case handle',(x+.20*h,y-.014,.235*h),(x+.28*h,y-.014,.235*h),.008,'bark',parent)
+        line(name+' case strap',(x+.24*h,y-.014,.03*h),(x+.24*h,y-.014,.21*h),.005,'bark',parent)
+        line(name+' carrying arm',(x+.16*h,y-.008,.45*h),(x+.24*h,y-.008,.24*h),.012,'ink',parent)
+    if carry=='pick':
+        line(name+' pick handle',(x-.20*h,y-.012,.20*h),(x+.18*h,y-.012,.78*h),.012,'bark',parent)
+        polygon(name+' pick head',[(x+.06*h,.86*h),(x+.30*h,.70*h),(x+.31*h,.72*h),(x+.10*h,.90*h)],.008,y-.014,'slate',parent)
+    if carry=='basket':
+        polygon(name+' harvest basket',[(x+.10*h,.30*h),(x+.34*h,.30*h),(x+.31*h,.44*h),(x+.13*h,.44*h)],.010,y-.010,'flower',parent)
+        for k in range(4):line(name+' wicker',(x+.12*h,y-.014,(.32+k*.03)*h),(x+.32*h,y-.014,(.32+k*.03)*h),.003,'bark',parent)
+    if carry=='satchel':
+        line(name+' satchel strap',(x-.07*h,y-.010,.72*h),(x+.12*h,y-.010,.42*h),.006,'tobacco',parent)
+        polygon(name+' satchel',[(x+.07*h,.31*h),(x+.20*h,.31*h),(x+.20*h,.43*h),(x+.07*h,.43*h)],.006,y-.012,'tobacco',parent)
+
+def kerb(name,x,y,w,parent,seed=3):
+    # Stone kerb with a row of rounded setts along its top edge.
+    rng=random.Random(seed)
+    polygon(name+' kerb',[(x-w/2,0),(x+w/2,0),(x+w/2,.05),(x-w/2,.05)],.012,y,'cobble',parent)
+    line(name+' kerb edge',(x-w/2,y-.008,.048),(x+w/2,y-.008,.048),.008,'cobble_light',parent)
+    xx=x-w/2+.01
+    i=0
+    while xx<x+w/2-.07:
+        cw=rng.uniform(.075,.10);ch=rng.uniform(.045,.06)
+        pts=[(xx,.045),(xx+cw,.045)]+[(xx+cw/2+cw/2*math.cos(a),.045+ch*.55+ch*.45*math.sin(a)) for a in [i2*math.pi/8 for i2 in range(9)]]
+        polygon(name+' sett',pts,.010,y,'cobble_light' if i%3 else 'cobble',parent)
+        xx+=cw+.010;i+=1
+
+def flower_hedge(name,x,y,w,h,parent,seed=4):
+    rng=random.Random(seed)
+    top=[(x+w/2,0),(x-w/2,0)]
+    n=int(w/.045)
+    for i in range(n+1):
+        xx=x-w/2+w*i/n;top.append((xx,h*(.82+.18*abs(math.sin(i*1.3)))+rng.uniform(-.01,.01)))
+    polygon(name+' clipped hedge',top,.012,y,'leaf_deep',parent)
+    polygon(name+' sunlit hedge face',[(x-w/2+.02,.02),(x+w/2-.02,.02),(x+w/2-.03,h*.62),(x-w/2+.03,h*.66)],.006,y-.007,'leaf',parent)
+    for i in range(int(w/.07)):
+        fx=x-w/2+.05+i*.07+rng.uniform(-.015,.015);fz=h*rng.uniform(.62,.86)
+        polygon(name+' flower',[(fx+.016*math.cos(a),fz+.016*math.sin(a)) for a in [k*math.tau/10 for k in range(10)]],.004,y-.013,'flower' if i%3 else 'red',parent)
+
+def grass(name,x,y,w,h,parent,seed=6):
+    rng=random.Random(seed)
+    for layer,mat in enumerate(['leaf_deep','leaf_light']):
+        pts=[(x+w/2,0),(x-w/2,0)]
+        n=int(w/.03)
+        for i in range(n):
+            xx=x-w/2+w*(i+.5)/n
+            pts.append((xx-.01,h*.25));pts.append((xx+rng.uniform(-.02,.02),h*rng.uniform(.55,1.0)*(1-.25*layer)))
+        pts.append((x+w/2,h*.2))
+        polygon(name+' grass tuft',pts,.006,y-layer*.007,mat,parent)
+
+def park_bench(name,x,y,s,parent):
+    # Green-painted Paris park bench: two iron legs, slatted seat and back.
+    for side in (-1,1):
+        lx=x+side*.30*s
+        polygon(name+' iron leg',[(lx-.025*s,0),(lx+.025*s,0),(lx+.018*s,.20*s),(lx+.05*s*side,.46*s),(lx+.02*s*side,.47*s),(lx-.012*s,.20*s)],.010,y,'slate',parent)
+    for zz in [.18,.215]:box(name+' seat slat',(x,y-.006,zz*s),(.70*s,.010,.022*s),'slate',parent,.002)
+    for zz in [.30,.35,.40]:box(name+' back slat',(x,y-.006,zz*s),(.72*s,.010,.026*s),'slate',parent,.002)
+
+def paving(name,x,y,w,parent,seed=8):
+    rng=random.Random(seed)
+    polygon(name+' courtyard edge',[(x-w/2,0),(x+w/2,0),(x+w/2,.07),(x-w/2,.07)],.012,y,'cobble',parent)
+    xx=x-w/2+.01;i=0
+    while xx<x+w/2-.1:
+        fw=rng.uniform(.17,.26)
+        polygon(name+' flagstone',[(xx,.012),(xx+fw,.012),(xx+fw,.062),(xx,.062)],.005,y-.007,'cobble_light' if i%2 else 'stone',parent)
+        xx+=fw+.012;i+=1
+
+def book_pile(name,x,y,s,parent,seed=9):
+    rng=random.Random(seed);zz=0
+    for i,(mat,w) in enumerate([('tobacco',.36),('slate',.32),('red',.34),('paper_light',.28),('ink_soft',.30)]):
+        hh=.042*s;dx=rng.uniform(-.03,.03)*s
+        polygon(name+' bound volume',[(x+dx-w*s/2,zz),(x+dx+w*s/2,zz),(x+dx+w*s/2,zz+hh),(x+dx-w*s/2,zz+hh)],.010,y,mat,parent)
+        line(name+' gilt band',(x+dx-w*s*.38,y-.008,zz+hh/2),(x+dx-w*s*.30,y-.008,zz+hh/2),.004,'brass',parent)
+        zz+=hh+.004*s
+    polygon(name+' satchel',[(x+.25*s,0),(x+.50*s,0),(x+.48*s,.17*s),(x+.27*s,.17*s)],.010,y,'tobacco',parent)
+    polygon(name+' satchel flap',[(x+.26*s,.10*s),(x+.49*s,.10*s),(x+.47*s,.18*s),(x+.28*s,.18*s)],.006,y-.007,'bark',parent)
+    line(name+' buckle',(x+.375*s,y-.012,.10*s),(x+.375*s,y-.012,.13*s),.010,'brass',parent)
+
+def versailles_planter(name,x,y,h,parent,seed=12):
+    # Luxembourg-garden planter: a slatted box with a clipped round orange tree.
+    rng=random.Random(seed);bw=h*.36;bh=h*.34
+    polygon(name+' planter box',[(x-bw/2,0),(x+bw/2,0),(x+bw/2,bh),(x-bw/2,bh)],.012,y,'slate',parent)
+    for dx in [-bw/2,bw/2]:polygon(name+' finial post',[(x+dx-.018,0),(x+dx+.018,0),(x+dx+.018,bh+.035),(x+dx-.018,bh+.035)],.010,y-.006,'ink_soft',parent)
+    for k in range(3):line(name+' slat',(x-bw*.4+k*bw*.4,y-.008,.02),(x-bw*.4+k*bw*.4,y-.008,bh-.02),.006,'ink_soft',parent)
+    polygon(name+' trunk',[(x-.012,bh),(x+.012,bh),(x+.010,h*.62),(x-.010,h*.62)],.008,y,'bark',parent)
+    for k,mat in enumerate(['leaf_deep','leaf']):
+        polygon(name+' clipped crown',lobed(x,h*.76,h*.23*(1-.18*k),h*.22*(1-.18*k),16,.07,rng),.007,y-.004-k*.007,mat,parent)
+    for i in range(5):
+        a=rng.uniform(0,math.tau);r=rng.uniform(.3,.75)
+        fx=x+math.cos(a)*r*h*.18;fz=h*.76+math.sin(a)*r*h*.17
+        polygon(name+' small orange',[(fx+.017*math.cos(t),fz+.017*math.sin(t)) for t in [k2*math.tau/10 for k2 in range(10)]],.004,y-.020,'flower',parent)
+
 def apartment_scene(basic=False):
-    # Layered Paris street at the rear, with a taller home on the right and two desks in front.
-    distant=hinge('Paris garden skyline fold',-.91,1.39)
-    canopy('Tuileries silhouettes',0,.01,2.08,.75,distant,'paper_shadow',9)
-    street=hinge('Paris townhouse fold',-.84,1.20)
-    for xx,w,h in [(-.72,.53,.91),(-.14,.62,1.14),(.49,.61,.98)]:facade('Paris roofline',xx,0,w,h,street,3,2)
+    # Right page only: the left page belongs to the raised writing, so nothing
+    # tall folds over it. Rear garden and Pantheon dome, the family home, a
+    # street promenade, two study desks, and a foreground of kerb, hedge and bench.
+    distant=hinge('Luxembourg garden fold',1.22,1.42)
+    canopy('Luxembourg chestnut silhouettes',0,.01,2.18,.86,distant,'paper_shadow',9)
+    # The dome stands left of the family home so it reads against the shelves.
+    dome_x=-.92
+    polygon('Pantheon drum',[(dome_x-.20,.55),(dome_x+.20,.55),(dome_x+.20,.92),(dome_x-.20,.92)],.012,-.004,'stone',distant)
+    for i in range(7):line('Pantheon colonnade',(dome_x-.17+i*.0567,-.012,.58),(dome_x-.17+i*.0567,-.012,.89),.012,'paper_light',distant)
+    polygon('Pantheon dome',[(dome_x-.21,.92)]+[(dome_x+.21*math.cos(a),.92+.24*math.sin(a)) for a in [math.pi*(1-i/20) for i in range(21)]],.012,-.004,'stone',distant)
+    polygon('Pantheon lantern',[(dome_x-.035,1.14),(dome_x+.035,1.14),(dome_x+.03,1.24),(dome_x,1.28),(dome_x-.03,1.24)],.010,-.004,'stone',distant)
     home=hinge('Apartment facade fold',1.09,.98)
     facade('Family apartment',0,0,1.31,1.64,home,4,3)
-    # Lower portico and classical doorway establish a place rather than generic blocks.
-    # Low paper rails and a lamp enrich the street without invading the reserved writing rectangle.
-    promenade=hinge('Paris promenade fold',.24,.81)
+    promenade=hinge('Paris promenade fold',.44,.80)
     for i in range(14):line('Promenade railing',(-.28+i*.043,0,0),(-.28+i*.043,0,.23),.010,'ink_soft',promenade)
     line('Promenade rail',(-.32,0,.235),(.32,0,.235),.014,'stone',promenade)
     lamp('Paris street lamp',-.30,-.025,.74,promenade)
-    trees=hinge('Plane tree fold',1.97,.68)
-    tree('Plane tree',0,0,1.23,trees,'leaf',13)
-    # Separate real card hinges avoid turning a thick desk group through the page.
+    trees=hinge('Plane tree fold',1.93,.68)
+    broadleaf('Paris plane tree',0,0,1.30,trees,13,.34,True)
     study1=hinge('Simone desk fold',.77,-.22)
-    desk('Simone desk',0,0,0,study1,1.02);figure('Young Simone',-.25,-.023,.62,study1,True)
+    desk('Simone desk',0,0,0,study1,1.02)
+    person('Young Simone',-.27,-.023,.60,study1,'bob',True,False,'satchel')
     study2=hinge('Andre desk fold',1.53,.11)
     desk('Andre desk',0,0,0,study2,.87)
-    figure('Andre',.25,-.020,.67,study2,True)
+    person('Andre',.27,-.020,.66,study2,'cap',False,False,'book')
     for i in range(4):
         box('Stacked reading volume',(-.11,-.023,.52+i*.020),(.20,.014,.019),['tobacco','paper','ink_soft','paper_light'][i],study2,.001)
-    garden=hinge('Front botanical fold',1.96,-.52)
-    tree('Olive paper branches',0,0,.60,garden,'leaf',42)
-    return [distant,street,home,promenade,trees,study1,study2,garden]
+    garden=hinge('Garden planter fold',2.03,-.50)
+    versailles_planter('Luxembourg planter',0,0,.62,garden,42)
+    hedge=hinge('Flower hedge fold',.62,-1.02)
+    flower_hedge('Paris flower bed',0,0,.82,.19,hedge,4)
+    bench=hinge('Park bench fold',1.58,-.98)
+    park_bench('Luxembourg bench',0,0,.62,bench)
+    tufts=hinge('Grass tuft fold',2.16,-1.12)
+    grass('Garden grass',0,0,.40,.15,tufts,6)
+    street=hinge('Kerb fold',1.22,-1.30)
+    kerb('Paris kerb',0,0,2.26,street,3)
+    return [distant,home,promenade,trees,study1,study2,garden,hedge,bench,tufts,street]
 
 def education_scene():
     # Detailed institutional pediment at the back; the large empty arch is genuinely cut through.
-    rear=hinge('School horizon fold',-.70,1.30)
+    # The Lycee Henri-IV front now stands on the right page, seen through the
+    # cut window, so nothing tall folds over the writing on the left page.
+    rear=hinge('School horizon fold',1.20,1.40)
     facade('Lycee Henri IV',0,0,1.94,.99,rear,3,5,False)
     polygon('Classical pediment',[(-1.03,.99),(1.03,.99),(0,1.40)],.014,0,'stone',rear)
     polygon('Inset tympanum',[(-.84,1.04),(.84,1.04),(0,1.33)],.009,-.012,'paper_light',rear)
@@ -482,7 +1035,8 @@ def education_scene():
     for i in range(20):
         a=i*math.tau/20;line('Medallion incised ray',(.08*math.cos(a),-.025,1.35+.08*math.sin(a)),(.165*math.cos(a),-.025,1.35+.165*math.sin(a)),.003,'gilt_dark',frame)
     ledge=hinge('Lecture desk fold',.85,-.34)
-    desk('Lecture writing desk',0,0,0,ledge,1.27);figure('Student Simone',-.38,-.024,.80,ledge)
+    desk('Lecture writing desk',0,0,0,ledge,1.27)
+    person('Student Simone',-.40,-.024,.80,ledge,'beret',True,True,'book')
     shelf=hinge('Library paper fold',1.97,.28)
     polygon('Library shelf back',[(-.24,0),(.24,0),(.24,1.08),(-.24,1.08)],.012,0,'tobacco',shelf)
     for zz in [.035,.37,.70,1.06]:box('Library shelf',(0,-.014,zz),(.50,.025,.025),'paper_light',shelf,.002)
@@ -492,20 +1046,33 @@ def education_scene():
             hh=rng.uniform(.21,.28);xx=-.20+i*.065
             box('Detailed bound volume',(xx,-.020,zz+hh/2),(.051,.014,hh),['paper','ink_soft','brass','stone','tobacco'][i%5],shelf,.002)
             for dz in [.027,hh-.027]:box('Tiny book gilt band',(xx,-.029,zz+dz),(.041,.003,.004),'paper_edge',shelf,0)
-    botanical=hinge('Bay laurel fold',.36,.55)
-    tree('Laurel of learning',0,0,.99,botanical,'leaf',59)
-    return [rear,frame,ledge,shelf,botanical]
+    botanical=hinge('Bay laurel fold',.40,.50)
+    laurel_bush('Laurel of learning',0,0,.88,botanical,59)
+    court=hinge('Courtyard paving fold',1.22,-1.30)
+    paving('School courtyard',0,0,2.26,court,8)
+    books=hinge('Book pile fold',1.48,-1.02)
+    book_pile('Lecture books',0,0,.72,books,9)
+    potted=hinge('Potted laurel fold',2.10,-.98)
+    laurel_bush('Potted laurel',0,0,.48,potted,23,True)
+    ivy=hinge('Courtyard grass fold',.42,-1.14)
+    grass('Courtyard grass',0,0,.50,.13,ivy,15)
+    return [rear,frame,ledge,shelf,botanical,court,books,potted,ivy]
 
-def normalize_hinges():
+def normalize_hinges(stack_folds=False):
     # Convert each card's children into hinge-local coordinates, reducing only
     # layered stock depth. Faces and silhouettes retain their authored outlines.
-    for h in [o for o in bpy.context.scene.objects if o.get('page_hinge')]:
+    hinges=[o for o in bpy.context.scene.objects if o.get('page_hinge')]
+    # Folded, a rear card lies on top of the cards in front of it. A tiny
+    # per-rank lift keeps those flat layers from sharing a depth (the folded
+    # spread is now printed onto the turning leaf).
+    rank={h.name:i for i,h in enumerate(sorted(hinges,key=lambda o:o.location.y))}
+    for h in hinges:
         children=[o for o in bpy.context.scene.objects if o.parent==h and o.type=='MESH']
         for o in children:
             o.data.transform(o.matrix_basis);o.matrix_basis=Matrix.Identity(4)
             for v in o.data.vertices:v.co.y*=.60
         miny=min(v.co.y for o in children for v in o.data.vertices)
-        shift=.003-miny
+        shift=.003-miny+(.0009*rank[h.name] if stack_folds else 0)
         for o in children:
             for v in o.data.vertices:v.co.y+=shift
         h.location.y-=shift
@@ -581,8 +1148,35 @@ def save_render(name):
     bpy.context.scene.render.filepath=str(POSTERS/f'{name}.webp')
     bpy.ops.render.render(write_still=True)
 
+def texture_cover_for_render():
+    # Posters only: the exported GLB keeps plain materials and the browser
+    # loads the same images from public/textures (src/book/materials.ts).
+    def image(name,colour):
+        img=bpy.data.images.load(str(ROOT/'public/textures'/name),check_existing=True)
+        img.colorspace_settings.name='sRGB' if colour else 'Non-Color';return img
+    def textured(mat_name,colour_name,orm=None,normal=None,uv=None):
+        mat=M.get(mat_name)
+        if not mat:return
+        nodes=mat.node_tree.nodes;links=mat.node_tree.links;bsdf=nodes['Principled BSDF']
+        tex=nodes.new('ShaderNodeTexImage');tex.image=image(colour_name,True)
+        if uv:
+            mapping=nodes.new('ShaderNodeUVMap');mapping.uv_map=uv;links.new(mapping.outputs['UV'],tex.inputs['Vector'])
+        links.new(tex.outputs['Color'],bsdf.inputs['Base Color'])
+        if orm:
+            o=nodes.new('ShaderNodeTexImage');o.image=image(orm,False);split=nodes.new('ShaderNodeSeparateColor')
+            links.new(o.outputs['Color'],split.inputs['Color'])
+            links.new(split.outputs['Green'],bsdf.inputs['Roughness']);links.new(split.outputs['Blue'],bsdf.inputs['Metallic'])
+        if normal:
+            nm=nodes.new('ShaderNodeTexImage');nm.image=image(normal,False);nmap=nodes.new('ShaderNodeNormalMap')
+            links.new(nm.outputs['Color'],nmap.inputs['Color']);links.new(nmap.outputs['Normal'],bsdf.inputs['Normal'])
+    textured('leather','cover-color.webp','cover-orm.webp','cover-normal.webp','UVMap')
+    textured('page_edge','paper-stock-edge.webp')
+    textured('endpaper','endpaper-color.webp')
+    textured('headband','binding-headband.webp')
+
 def build_book():
     reset();root,leaf=book();batch_book_layers();export_asset('book')
+    texture_cover_for_render()
     leaf.hide_render=True;studio();save_render('book')
 
 def build_chapter(number):
@@ -596,7 +1190,7 @@ def build_chapter(number):
         module.build(number,globals())
     else: raise ValueError('Chapter must be between 1 and 12.')
     bpy.context.scene.frame_set(30)
-    normalize_hinges()
+    normalize_hinges(stack_folds=True)
     consolidate()
     chapter_objects=list(bpy.context.scene.objects)
     export_asset(f'chapter-{number:02}')

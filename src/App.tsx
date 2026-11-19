@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, SpeakerHigh, SpeakerSlash, X, ArrowUpRight, ArrowClockwise } from '@phosphor-icons/react';
+import { ArrowLeft, ArrowRight, BookOpen, SpeakerHigh, SpeakerSlash, X, ArrowUpRight, ArrowClockwise, Lamp, MagnifyingGlass } from '@phosphor-icons/react';
 import { BookHeader } from './BookHeader';
 import { chapters } from './content/chapters';
 import type { BookScene } from './book/BookScene';
@@ -9,6 +9,10 @@ import type { BookSnapshot, Chapter } from './types';
 type Panel = 'contents' | 'reading' | 'edition' | null;
 const initialState: BookSnapshot = { phase: 'loading', chapter: 0, progress: 0 };
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+const initialLamp = () => {
+  try { return localStorage.getItem('simone-weil-lamp') === 'on'; }
+  catch { return false; }
+};
 const initialReducedMotion = () => {
   const system = matchMedia('(prefers-reduced-motion: reduce)').matches;
   try { return localStorage.getItem('simone-weil-reduced-motion') === 'true' || system; }
@@ -37,7 +41,7 @@ export function App() {
   const musicStarted = useRef(false);
   const resumeChapter = useRef<number | undefined>(undefined);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const gesture = useRef<{ x: number; y: number; time: number } | null>(null);
+  const gesture = useRef<{ x: number; y: number; time: number; width: number; direction: 0 | 1 | -1; lastX: number; lastTime: number; velocity: number } | null>(null);
   const [state, setState] = useState<BookSnapshot>(initialState);
   const [fallback, setFallback] = useState(() => new URLSearchParams(location.search).has('read'));
   const [retry, setRetry] = useState(0);
@@ -49,6 +53,10 @@ export function App() {
   const [inspectionPaused, setInspectionPaused] = useState(inspect);
   const [metrics, setMetrics] = useState('');
   const [reduced, setReduced] = useState(initialReducedMotion);
+  const [lampOn, setLampOn] = useState(initialLamp);
+  const [loupe, setLoupe] = useState(false);
+  const loupeAt = useRef({ x: 0, y: 0, shown: false });
+  const lampRef = useRef(lampOn);
   const reducedRef = useRef(reduced);
   reducedRef.current = reduced;
   const chapter = chapters[state.chapter];
@@ -76,12 +84,19 @@ export function App() {
         reducedMotion: reducedRef.current,
         onChange: setState,
         onRustle: () => audioRef.current.rustle(),
+        lampOn: lampRef.current,
+        onLamp: on => {
+          lampRef.current = on;
+          setLampOn(on);
+          audioRef.current.click(on);
+          try { localStorage.setItem('simone-weil-lamp', on ? 'on' : 'off'); } catch { /* The lamp still works without storage. */ }
+        },
       });
       sceneRef.current = scene;
       if (inspect) scene.setInspectionProgress(0);
       void scene.init();
       if (import.meta.env.DEV) {
-        Object.assign(window, { __bookDebug: { getState: () => scene?.state, getMetrics: () => scene?.getMetrics() } });
+        Object.assign(window, { __bookDebug: { getState: () => scene?.state, getMetrics: () => scene?.getMetrics(), getLeafPrints: () => scene?.inspectLeafPrints(), inspect: () => scene?.inspectScene(), project: (points: [number, number, number][]) => scene?.inspectProject(points), lamp: (x: number, z: number, s: number, r: number) => scene?.inspectLamp(x, z, s, r) } });
       }
     }).catch(() => {
       if (!cancelled) setState({ ...initialState, phase: 'error', error: 'Your browser could not start the 3D edition. The illustrated edition is ready to read.' });
@@ -111,10 +126,38 @@ export function App() {
       if (event.key === 'ArrowRight' && reading) { event.preventDefault(); turn(state.chapter + 1); }
       if (event.key === 'ArrowLeft' && reading) { event.preventDefault(); turn(state.chapter - 1); }
       if (event.key === 'Enter' && state.phase === 'closed' && event.target === document.body) openBook();
+      if ((event.key === 'l' || event.key === 'L') && !fallback) sceneRef.current?.pullLamp();
+      if ((event.key === 'm' || event.key === 'M') && !fallback) setLoupe(value => !value);
+      if (event.key === 'Escape' && loupe) setLoupe(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [panel, reading, state.chapter, state.phase, turn]);
+  }, [panel, reading, state.chapter, state.phase, turn, fallback, loupe]);
+
+  // The loupe is a 3D reading glass drawn by the scene over the live view.
+  const moveLoupe = (stage: HTMLElement, clientX: number, clientY: number, touch: boolean) => {
+    const rect = stage.getBoundingClientRect();
+    const radius = Math.round(Math.min(140, Math.max(84, rect.width * 0.085)));
+    // Under a finger, float the lens above the touch point so it stays visible.
+    const x = Math.min(rect.width - 8, Math.max(8, clientX - rect.left));
+    const y = Math.max(radius + 8, clientY - rect.top - (touch ? radius + 34 : 0));
+    loupeAt.current = { x, y, shown: true };
+    sceneRef.current?.setLoupe(true, x, y, radius, touch);
+  };
+  const hideLoupe = () => {
+    loupeAt.current.shown = false;
+    sceneRef.current?.setLoupe(false);
+  };
+  useEffect(() => {
+    if (loupe) {
+      const stage = stageRef.current;
+      if (stage && !loupeAt.current.shown) {
+        const rect = stage.getBoundingClientRect();
+        moveLoupe(stage, rect.left + rect.width * 0.36, rect.top + rect.height * 0.55, false);
+      }
+    } else hideLoupe();
+  }, [loupe]);
+  useEffect(() => { if (fallback || state.phase === 'error') setLoupe(false); }, [fallback, state.phase]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -155,7 +198,7 @@ export function App() {
     setRetry(value => value + 1);
   };
 
-  return <main className={`experience ${reading ? 'is-reading' : 'is-closed'} ${fallback ? 'is-illustrated' : ''}`} data-phase={fallback ? 'illustrated' : state.phase} data-chapter={state.chapter + 1}>
+  return <main className={`experience ${reading ? 'is-reading' : 'is-closed'} ${fallback ? 'is-illustrated' : ''} ${lampOn && !fallback ? 'lamp-on' : ''}`} data-phase={fallback ? 'illustrated' : state.phase} data-chapter={state.chapter + 1}>
     {inspect && <aside className="inspection-tools" aria-label="Development animation inspection">
       <label><input type="checkbox" checked={inspectionPaused} onChange={event => {
         setInspectionPaused(event.target.checked);
@@ -172,23 +215,71 @@ export function App() {
     <a className="skip-link" href="#chapter-reading" onClick={() => { if (!reading) illustrated(); }}>Skip to the story</a>
     <BookHeader reading={reading} busy={busy} onAbout={() => setPanel('edition')} onContents={() => setPanel('contents')} />
 
-    {!fallback && <div className="book-stage" ref={stageRef}
+    {!fallback && <div className={`book-stage ${loupe ? 'is-magnifying' : ''}`} ref={stageRef}
       onPointerMove={event => {
         const rect = event.currentTarget.getBoundingClientRect();
-        sceneRef.current?.setPointer((event.clientX - rect.left) / rect.width * 2 - 1, (event.clientY - rect.top) / rect.height * 2 - 1);
-      }}
-      onPointerLeave={() => sceneRef.current?.setPointer(0, 0)}
-      onPointerDown={event => { gesture.current = { x: event.clientX, y: event.clientY, time: performance.now() }; }}
-      onPointerUp={event => {
         const start = gesture.current;
-        gesture.current = null;
+        const px = (event.clientX - rect.left) / rect.width * 2 - 1, py = (event.clientY - rect.top) / rect.height * 2 - 1;
+        if (loupe) {
+          if (event.pointerType === 'mouse' || gesture.current) moveLoupe(event.currentTarget, event.clientX, event.clientY, event.pointerType !== 'mouse');
+          return;
+        }
+        if (!start || !start.direction) sceneRef.current?.setPointer(px, py);
+        if (!start && event.pointerType === 'mouse') event.currentTarget.classList.toggle('over-lamp', Boolean(sceneRef.current?.lampHit(px, py)));
         if (!start || panel) return;
         const dx = event.clientX - start.x;
         const dy = event.clientY - start.y;
-        if (state.phase === 'closed' && Math.abs(dx) < 12 && Math.abs(dy) < 12) openBook();
+        // Pick up the page once the hand clearly moves sideways; it then follows the hand.
+        if (!start.direction && state.phase === 'reading' && Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+          const direction = dx < 0 ? 1 : -1;
+          // The page is taken where the hand first pressed; that row of the sheet leads.
+          if (sceneRef.current?.beginDrag(direction, start.x - rect.left, start.y - rect.top)) {
+            start.direction = direction;
+            event.currentTarget.classList.add('is-dragging');
+          }
+        }
+        if (start.direction) {
+          const now = performance.now(), elapsed = Math.max(1, now - start.lastTime);
+          // Hand speed in stage widths per second, smoothed, for the release.
+          start.velocity = start.velocity * 0.6 + 0.4 * ((event.clientX - start.lastX) / start.width) / (elapsed / 1000);
+          start.lastX = event.clientX; start.lastTime = now;
+          sceneRef.current?.dragTo(-start.direction * dx / (start.width * 0.42), event.clientX - rect.left, event.clientY - rect.top);
+        }
+      }}
+      onPointerLeave={event => { if (loupe && event.pointerType === 'mouse') hideLoupe(); if (!gesture.current?.direction) sceneRef.current?.setPointer(0, 0); }}
+      onPointerDown={event => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        gesture.current = { x: event.clientX, y: event.clientY, time: performance.now(), width: rect.width, direction: 0, lastX: event.clientX, lastTime: performance.now(), velocity: 0 };
+        if (loupe) { event.currentTarget.setPointerCapture(event.pointerId); moveLoupe(event.currentTarget, event.clientX, event.clientY, event.pointerType !== 'mouse'); return; }
+        if (state.phase === 'reading') event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerUp={event => {
+        const start = gesture.current;
+        gesture.current = null;
+        event.currentTarget.classList.remove('is-dragging');
+        if (!start || panel || loupe) return;
+        const dx = event.clientX - start.x;
+        const dy = event.clientY - start.y;
+        const rect = event.currentTarget.getBoundingClientRect();
+        const tapped = Math.abs(dx) < 12 && Math.abs(dy) < 12;
+        if (!start.direction && tapped && sceneRef.current?.lampHit((event.clientX - rect.left) / rect.width * 2 - 1, (event.clientY - rect.top) / rect.height * 2 - 1)) {
+          sceneRef.current.pullLamp();
+          return;
+        }
+        if (start.direction) {
+          // A held page past the spine turns; a flick onward turns, a flick back returns it.
+          const stale = performance.now() - start.lastTime > 120;
+          sceneRef.current?.endDrag(undefined, stale ? 0 : -start.direction * start.velocity);
+        } else if (state.phase === 'closed' && Math.abs(dx) < 12 && Math.abs(dy) < 12) openBook();
         else if (state.phase === 'reading' && Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - start.time < 1000) turn(state.chapter + (dx < 0 ? 1 : -1));
       }}
-      onPointerCancel={() => { gesture.current = null; }} />}
+      onPointerCancel={event => {
+        if (gesture.current?.direction) sceneRef.current?.endDrag(false);
+        gesture.current = null;
+        event.currentTarget.classList.remove('is-dragging');
+      }} />}
+
+    {loupe && !fallback && <p className="loupe-hint">Move the magnifier over the page. Press M or Esc to put it away.</p>}
 
     {state.phase === 'loading' && !fallback && <section className="loading-state" aria-live="polite" aria-label="Loading the book">
       <div className="loading-monogram">SW</div>
@@ -230,6 +321,8 @@ export function App() {
         </nav>
         <div className="reading-tools">
           <button className="tool-button" onClick={() => setPanel('reading')} aria-label="Read chapter and quotation source"><BookOpen size={22} weight="light" /><span>Read</span></button>
+          {!fallback && <button className="tool-button" onClick={() => setLoupe(value => !value)} aria-label={loupe ? 'Put the magnifier away' : 'Use the magnifier'} aria-pressed={loupe} title="Magnifier (M)"><MagnifyingGlass size={22} weight={loupe ? 'bold' : 'light'} /><span>Loupe</span></button>}
+          {!fallback && <button className="tool-button" onClick={() => sceneRef.current?.pullLamp()} aria-label={lampOn ? 'Switch the desk lamp off' : 'Switch the desk lamp on'} aria-pressed={lampOn} title="Pull the lamp chain (L)"><Lamp size={22} weight={lampOn ? 'fill' : 'light'} /><span>Lamp</span></button>}
           <button className="tool-button" onClick={() => void enableSound()} aria-label={sound ? 'Mute sound' : 'Enable sound'} aria-pressed={sound}>{sound ? <SpeakerHigh size={22} weight="light" /> : <SpeakerSlash size={22} weight="light" />}<span>Sound {sound ? 'on' : 'off'}</span></button>
         </div>
       </footer>
@@ -255,6 +348,7 @@ export function App() {
           <p>Simone Weil (1909–1943) was a French philosopher, teacher, and writer who wanted to understand how people could live with dignity. She supported workers, took factory jobs, and later helped the Free French in London. Her encounters with poverty, war, and Christianity shaped her writing about justice, attention, and belonging. She died at 34, leaving ideas that still ask us to notice people whose suffering is easily ignored.</p>
           <p>This book’s paper scenes are artistic interpretations. The words beneath each scene connect her experiences to her ideas; the quotations are short translations made for this edition from verified French texts.</p>
           <p>Open any chapter’s reading view to find its quotation, original work, and source. Historical context draws on the <a href="https://plato.stanford.edu/entries/simone-weil/" target="_blank" rel="noreferrer">Stanford Encyclopedia of Philosophy</a> and the <a href="https://simoneweilsociety.org/about" target="_blank" rel="noreferrer">American Weil Society</a>.</p>
+          <p>To read closely, take up the <strong>loupe</strong> (M) and move it over any page. Pull the desk <strong>lamp</strong>’s chain (L) to read by lamplight. Turn pages with the arrows, or take hold of a page and drag it across.</p>
           <label className="motion-setting"><input type="checkbox" checked={reduced} onChange={event => {
             setReduced(event.target.checked);
             try { localStorage.setItem('simone-weil-reduced-motion', String(event.target.checked)); } catch { /* The setting still works when storage is unavailable. */ }

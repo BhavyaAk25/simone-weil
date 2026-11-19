@@ -102,32 +102,70 @@ export function sampleBounds(glb, animationName, progress, { include, exclude = 
       }
     }
   }
-  const bounds = new Box3(), vertex = new Vector3();
-  function visit(index, parent, ancestry) {
+  const bounds = new Box3(), vertex = new Vector3(), skinned = new Vector3(), part = new Vector3();
+  const worlds = new Map();
+  function world(index, parent, ancestry) {
     assert(!ancestry.has(index), 'Cycle in glTF node graph');
     const node = json.nodes[index];
     assert(node, `Missing node ${index}`);
-    const next = new Set(ancestry).add(index), p = pose[index];
+    const p = pose[index];
     const local = node.matrix ? new Matrix4().fromArray(node.matrix) : new Matrix4().compose(p.position, p.rotation, p.scale);
-    const world = parent.clone().multiply(local);
-    if (node.mesh !== undefined && !exclude.includes(node.name) && (!include || include.includes(node.name))) {
-      for (const primitive of json.meshes[node.mesh].primitives) {
-        const positions = accessor(primitive.attributes.POSITION);
-        const morphs = (primitive.targets ?? []).map(target => target.POSITION === undefined ? null : accessor(target.POSITION));
-        for (let offset = 0; offset < positions.length; offset += 3) {
-          vertex.fromArray(positions, offset);
-          morphs.forEach((deltas, target) => {
-            if (deltas && p.weights[target]) { vertex.x += deltas[offset] * p.weights[target]; vertex.y += deltas[offset + 1] * p.weights[target]; vertex.z += deltas[offset + 2] * p.weights[target]; }
-          });
-          vertex.applyMatrix4(world);
-          if (checkVertex) checkVertex(vertex, node.name);
-          bounds.expandByPoint(vertex);
-        }
+    worlds.set(index, parent.clone().multiply(local));
+    const next = new Set(ancestry).add(index);
+    for (const child of node.children ?? []) world(child, worlds.get(index), next);
+  }
+  const roots = json.scenes?.[json.scene ?? 0]?.nodes ?? [];
+  for (const index of roots) world(index, new Matrix4(), new Set());
+  // Skins (glTF 2.0 section 3.7.3): vertex = sum(weight * jointWorld * inverseBind * v).
+  // The skinned mesh node's own transform is ignored, as the specification requires.
+  const skinMatrices = (json.skins ?? []).map(skin => {
+    const inverse = skin.inverseBindMatrices === undefined ? null : accessor(skin.inverseBindMatrices);
+    return skin.joints.map((joint, j) => {
+      assert(worlds.has(joint), 'Skin joint is not in the scene');
+      const bind = inverse ? new Matrix4().fromArray(inverse.slice(j * 16, j * 16 + 16)) : new Matrix4();
+      return worlds.get(joint).clone().multiply(bind);
+    });
+  });
+  const normalized = (index, values) => {
+    const spec = json.accessors[index];
+    if (!spec.normalized) return values;
+    const scale = { 5121: 255, 5123: 65535 }[spec.componentType] ?? 1;
+    return values.map(value => value / scale);
+  };
+  for (const [index, worldMatrix] of worlds) {
+    const node = json.nodes[index], p = pose[index];
+    if (node.mesh === undefined || exclude.includes(node.name) || (include && !include.includes(node.name))) continue;
+    const joints = node.skin === undefined ? null : skinMatrices[node.skin];
+    for (const primitive of json.meshes[node.mesh].primitives) {
+      const positions = accessor(primitive.attributes.POSITION);
+      const morphs = (primitive.targets ?? []).map(target => target.POSITION === undefined ? null : accessor(target.POSITION));
+      const jointIndex = joints ? accessor(primitive.attributes.JOINTS_0) : null;
+      const jointWeight = joints ? normalized(primitive.attributes.WEIGHTS_0, accessor(primitive.attributes.WEIGHTS_0)) : null;
+      for (let offset = 0; offset < positions.length; offset += 3) {
+        vertex.fromArray(positions, offset);
+        morphs.forEach((deltas, target) => {
+          if (deltas && p.weights[target]) { vertex.x += deltas[offset] * p.weights[target]; vertex.y += deltas[offset + 1] * p.weights[target]; vertex.z += deltas[offset + 2] * p.weights[target]; }
+        });
+        if (joints) {
+          const v = offset / 3;
+          skinned.set(0, 0, 0);
+          let total = 0;
+          for (let k = 0; k < 4; k++) {
+            const weight = jointWeight[v * 4 + k];
+            if (!weight) continue;
+            const matrix = joints[jointIndex[v * 4 + k]];
+            assert(matrix, 'Skin joint index out of range');
+            skinned.add(part.copy(vertex).applyMatrix4(matrix).multiplyScalar(weight));
+            total += weight;
+          }
+          assert(total > 0.98 && total < 1.02, 'Skin weights do not sum to one');
+          vertex.copy(skinned);
+        } else vertex.applyMatrix4(worldMatrix);
+        if (checkVertex) checkVertex(vertex, node.name);
+        bounds.expandByPoint(vertex);
       }
     }
-    for (const child of node.children ?? []) visit(child, world, next);
   }
-  for (const index of json.scenes?.[json.scene ?? 0]?.nodes ?? []) visit(index, new Matrix4(), new Set());
   assert(!bounds.isEmpty(), 'No visible mesh vertices found');
   return bounds;
 }
@@ -167,10 +205,11 @@ export function inspectAsset(filename, { directory = root } = {}) {
   const bytes = fs.readFileSync(path.join(directory, 'public/models', filename)), glb = parseGlb(bytes), { json, accessor } = glb;
   const book = filename === 'book.glb', requiredClips = book ? ['open', 'turn', 'reading'] : ['unfold'];
   const names = new Set((json.nodes ?? []).map(node => node.name));
-  const requiredNodes = book ? ['BookRoot', 'CoverHinge', 'Spine', 'LeftPage', 'RightPage', 'TurnPage', 'FrontCover', 'BackCover', 'Front title', 'Spine title', 'ReadingHinge', 'ReadingPanel'] : [];
+  const requiredNodes = book ? ['BookRoot', 'CoverHinge', 'Spine', 'LeftPage', 'RightPage', 'TurnPage', 'FrontCover', 'BackCover', 'Front cover art', 'Spine title', 'ReadingHinge', 'ReadingPanel'] : [];
   for (const name of requiredNodes) assert(names.has(name), `Missing required node ${name}`);
   assert(json.meshes?.length > 0 && json.materials?.length > 0, 'Missing geometry or materials');
-  for (const material of book ? ['leather', 'brass', 'paper'] : ['paper']) assert(json.materials.some(item => item.name === material), `Missing ${material} material`);
+  // Since 18 November the book's foil lives in the leather atlas (no separate brass mesh).
+  for (const material of book ? ['leather', 'paper', 'page_edge'] : ['paper']) assert(json.materials.some(item => item.name === material), `Missing ${material} material`);
   let primitives = 0, triangles = 0;
   for (const mesh of json.meshes) for (const primitive of mesh.primitives) {
     primitives++;
@@ -255,6 +294,90 @@ export function inspectAsset(filename, { directory = root } = {}) {
   return report;
 }
 
+/** World matrices for every node of a static glTF scene (no animation). */
+function staticWorld(json) {
+  const out = new Map();
+  const children = new Set((json.nodes ?? []).flatMap(node => node.children ?? []));
+  const visit = (index, parent) => {
+    const node = json.nodes[index];
+    const local = node.matrix ? new Matrix4().fromArray(node.matrix) : new Matrix4().compose(
+      new Vector3(...(node.translation ?? [0, 0, 0])), new Quaternion(...(node.rotation ?? [0, 0, 0, 1])), new Vector3(...(node.scale ?? [1, 1, 1])));
+    const matrix = parent.clone().multiply(local);
+    out.set(index, matrix);
+    for (const child of node.children ?? []) visit(child, matrix);
+  };
+  (json.nodes ?? []).forEach((_, index) => { if (!children.has(index)) visit(index, new Matrix4()); });
+  return out;
+}
+
+/**
+ * The desk lamp (Room agent, docs/ROOM-LAMP.md): the names the runtime needs, a static
+ * model whose chain the browser animates, real proportions standing on y = 0, UVs on the
+ * brass (its brushing direction) and a small budget.
+ */
+export function inspectLamp({ directory = root } = {}) {
+  const bytes = fs.readFileSync(path.join(directory, 'public/models/lamp.glb')), glb = parseGlb(bytes), { json } = glb;
+  const names = new Map((json.nodes ?? []).map((node, index) => [node.name, index]));
+  for (const name of ['LampRoot', 'LampBase', 'LampStem', 'LampHarp', 'LampShade', 'LampShadeInner', 'LampBulb', 'PullChain', 'PullHandle', 'LightAnchor', 'ChainAnchor']) assert(names.has(name), `Missing required node ${name}`);
+  for (const material of ['lamp_brass', 'lamp_brass_dark', 'lamp_chain', 'lamp_glass', 'lamp_opal', 'lamp_bulb', 'lamp_felt', 'lamp_hit']) assert(json.materials?.some(item => item.name === material), `Missing ${material} material`);
+  assert(!json.animations?.length, 'The lamp is static: the browser animates its chain');
+  validateImages(glb, { directory });
+  const world = staticWorld(json);
+  const bounds = new Map();
+  let primitives = 0, triangles = 0;
+  json.nodes.forEach((node, index) => {
+    if (node.mesh === undefined) return;
+    const box = new Box3();
+    for (const primitive of json.meshes[node.mesh].primitives) {
+      primitives++;
+      triangles += (primitive.indices === undefined ? json.accessors[primitive.attributes.POSITION].count : json.accessors[primitive.indices].count) / 3;
+      const material = json.materials?.[primitive.material]?.name ?? '';
+      if (material.startsWith('lamp_brass') || material === 'lamp_chain') assert(primitive.attributes.TEXCOORD_0 !== undefined, `${node.name} needs UVs for brushed brass`);
+      const { min, max } = json.accessors[primitive.attributes.POSITION];
+      for (let i = 0; i < 8; i++) box.expandByPoint(new Vector3(i & 1 ? max[0] : min[0], i & 2 ? max[1] : min[1], i & 4 ? max[2] : min[2]).applyMatrix4(world.get(index)));
+    }
+    bounds.set(node.name, box);
+  });
+  const all = new Box3(), visible = new Box3();
+  for (const [name, box] of bounds) { all.union(box); if (name !== 'PullHandle') visible.union(box); }
+  const height = visible.max.y - visible.min.y;
+  assert(Math.abs(visible.min.y) < 0.003, `Lamp must stand on y = 0 (lowest point ${visible.min.y.toFixed(4)})`);
+  assert(height > 1.6 && height < 2.1, `Lamp height ${height.toFixed(2)} outside the 1.6-2.1 unit framing budget`);
+  const shade = bounds.get('LampShade'), chain = bounds.get('Chain beads') ?? bounds.get('Chain pull');
+  assert(shade && shade.max.y > 0.85 * height, 'Shade must crown the lamp');
+  assert(chain && chain.min.y < shade.min.y && chain.max.x > 0, 'Pull chain must hang below the shade rim, on its right');
+  const anchor = new Vector3().setFromMatrixPosition(world.get(names.get('LightAnchor')));
+  assert(anchor.y > shade.min.y && anchor.y < shade.max.y, 'LightAnchor must sit inside the shade');
+  assert(bytes.length <= 1024 * 1024 && primitives <= 32 && triangles <= 40000, 'Lamp exceeds its 1 MiB / 32 primitives / 40k triangles budget');
+  const source = fs.readFileSync(path.join(directory, 'assets/source/lamp.blend'));
+  assert(source.toString('ascii', 0, 7) === 'BLENDER' || source.readUInt32LE(0) === 0xfd2fb528 || source.readUInt16LE(0) === 0x8b1f, 'Lamp Blender source is missing or an unresolved Git LFS pointer');
+  return { file: 'lamp.glb', bytes: bytes.length, primitives, triangles, animations: { static: Number(height.toFixed(2)) } };
+}
+
+/** WebP canvas size from its RIFF header (VP8, VP8L or VP8X). */
+function webpSize(bytes) {
+  assert(bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP', 'Not a WebP file');
+  const chunk = bytes.toString('ascii', 12, 16);
+  if (chunk === 'VP8X') return [1 + bytes.readUIntLE(24, 3), 1 + bytes.readUIntLE(27, 3)];
+  if (chunk === 'VP8L') { const b = bytes.readUInt32LE(21); return [(b & 0x3fff) + 1, ((b >> 14) & 0x3fff) + 1]; }
+  if (chunk === 'VP8 ') return [bytes.readUInt16LE(26) & 0x3fff, bytes.readUInt16LE(28) & 0x3fff];
+  throw new Error(`Unknown WebP chunk ${chunk}`);
+}
+
+/** The procedural walnut desk maps (scripts/make-desk-textures.py): present, tile sizes, budget. */
+export function inspectDesk({ directory = root } = {}) {
+  const expected = { 'desk-color': [4096, 2048], 'desk-normal': [1024, 1024], 'desk-rough': [1024, 1024], 'desk-coat': [512, 512] };
+  let bytes = 0;
+  for (const [name, size] of Object.entries(expected)) {
+    const file = fs.readFileSync(path.join(directory, `public/textures/${name}.webp`));
+    const [w, h] = webpSize(file);
+    assert(w === size[0] && h === size[1], `${name}.webp is ${w} x ${h}, expected ${size.join(' x ')}`);
+    bytes += file.length;
+  }
+  assert(bytes <= 2.5 * 1024 * 1024, 'Desk textures exceed their 2.5 MiB transfer budget');
+  return { file: 'desk textures', bytes, primitives: 0, triangles: 0, animations: {} };
+}
+
 export function validateAssets({ milestone = false, directory = root } = {}) {
   const required = ['book.glb', ...Array.from({ length: milestone ? 2 : 12 }, (_, index) => `chapter-${String(index + 1).padStart(2, '0')}.glb`)];
   const reports = [], errors = [];
@@ -262,7 +385,13 @@ export function validateAssets({ milestone = false, directory = root } = {}) {
     try { reports.push(inspectAsset(file, { directory })); }
     catch (error) { errors.push(`${file}: ${error.message}`); }
   }
-  return { mode: milestone ? 'milestone (book + 2 chapters)' : 'release (book + 12 chapters)', reports, errors };
+  if (!milestone) {
+    try { reports.push(inspectLamp({ directory })); }
+    catch (error) { errors.push(`lamp.glb: ${error.message}`); }
+    try { reports.push(inspectDesk({ directory })); }
+    catch (error) { errors.push(`desk textures: ${error.message}`); }
+  }
+  return { mode: milestone ? 'milestone (book + 2 chapters)' : 'release (book + 12 chapters + lamp)', reports, errors };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
